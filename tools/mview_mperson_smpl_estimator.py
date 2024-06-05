@@ -6,6 +6,7 @@ import glob
 import mmcv
 import numpy as np
 import os
+import shutil
 from mmhuman3d.core.visualization.visualize_smpl import (
     visualize_smpl_calibration,
 )
@@ -15,8 +16,9 @@ from xrprimer.data_structure.camera import FisheyeCameraParameter
 from xrprimer.utils.log_utils import setup_logger
 
 from xrmocap.core.estimation.builder import build_estimator
-#from xrmocap.core.visualization import visualize_project_keypoints3d
+from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints2d
 from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints3d_projected
+from xrprimer.utils.ffmpeg_utils import VideoInfoReader, video_to_array
 
 # yapf: enable
 
@@ -35,28 +37,42 @@ def main(args):
     estimator_config['logger'] = logger
     smpl_estimator = build_estimator(estimator_config)
     # load camera parameter and images
-    image_dir = []
+    image_dirs = []
+    video_files = []
     fisheye_param_paths = []
     with open(args.image_and_camera_param, 'r') as f:
         for i, line in enumerate(f.readlines()):
             line = line.strip()
             if i % 2 == 0:
-                image_dir.append(line)
+                if line[-4:] == '.mp4':
+                    video_files.append(line)
+                else:
+                    image_dirs.append(line)
             else:
                 fisheye_param_paths.append(line)
     fisheye_params = load_camera_parameters(fisheye_param_paths)
-    mview_img_list = []
-    for idx in range(len(fisheye_params)):
-        sview_img_list = sorted(
-            glob.glob(os.path.join(image_dir[idx], '*.png')))
-        img_list_start = int(sview_img_list[0][-10:-4])
-        sview_img_list = sview_img_list[args.start_frame -
-                                        img_list_start:args.end_frame -
-                                        img_list_start]
 
-        mview_img_list.append(sview_img_list)
-    pred_keypoints3d, smpl_data_list = smpl_estimator.run(
-        cam_param=fisheye_params, img_paths=mview_img_list)
+    start_frame = args.start_frame
+    end_frame = args.end_frame
+    mview_img_list = None
+    mview_video_list = None
+
+    if len(video_files) > 0:
+        mview_video_list = []
+        for idx in range(len(fisheye_params)):
+            mview_video_list.append(video_files[idx])
+    else:
+        mview_img_list = []
+        for idx in range(len(fisheye_params)):
+            sview_img_list = sorted(glob.glob(os.path.join(image_dirs[idx], '*.jpg')))
+            if len(sview_img_list) == 0:
+                sview_img_list = sorted(glob.glob(os.path.join(image_dirs[idx], '*.png')))
+            if end_frame <= 0:
+                end_frame = len(sview_img_list)
+            sview_img_list = sview_img_list[start_frame:end_frame]
+            mview_img_list.append(sview_img_list)
+    pred_keypoints2d_list, pred_keypoints3d, smpl_data_list = smpl_estimator.run(
+        cam_param=fisheye_params, img_paths=mview_img_list, video_paths=mview_video_list)
     npz_path = os.path.join(args.output_dir, 'pred_keypoints3d.npz')
     pred_keypoints3d.dump(npz_path)
     for i, smpl_data in enumerate(smpl_data_list):
@@ -64,7 +80,7 @@ def main(args):
 
     # Visualization
     if not args.disable_visualization:
-        n_frame = args.end_frame - args.start_frame
+        n_frame = pred_keypoints3d['keypoints'].shape[0]
         n_person = len(smpl_data_list)
         colors = get_different_colors(n_person)
         tmp = colors[:, 0].copy()
@@ -97,29 +113,33 @@ def main(args):
             cam_name = fisheye_param.name
             view_name = cam_name.replace('fisheye_param_', '')
 
-            image_list = []
-            for frame_path in mview_img_list[idx]:
-                image_np = cv2.imread(frame_path)
-                image_list.append(image_np)
-            image_array = np.array(image_list)
+            if len(video_files) > 0:
+                image_array = video_to_array(video_files[idx],
+                    start=0, end=None, logger=logger)
+            else:
+                image_list = []
+                for frame_path in mview_img_list[idx]:
+                    image_np = cv2.imread(frame_path)
+                    image_list.append(image_np)
+                image_array = np.array(image_list)
 
-            #visualize_project_keypoints3d(
-            #    keypoints=pred_keypoints3d,
-            #    cam_param=fisheye_param,
-            #    output_path=os.path.join(args.output_dir, 'kps3d',
-            #                             f'project_view_{view_name}.mp4'),
-            #    img_arr=image_array.copy(),
-            #    overwrite=True)
-
+            kps2d_output_dir = os.path.join(args.output_dir, 'kps2d')
+            os.makedirs(kps2d_output_dir, exist_ok=True)
             kps3d_output_dir = os.path.join(args.output_dir, 'kps3d')
             os.makedirs(kps3d_output_dir, exist_ok=True)
             smpl_output_dir = os.path.join(args.output_dir, 'smpl')
             os.makedirs(smpl_output_dir, exist_ok=True)
 
+            visualize_keypoints2d(
+                keypoints=pred_keypoints2d_list[idx],
+                output_path=os.path.join(kps2d_output_dir, f'{view_name}_kps2d.mp4'),
+                background_arr=image_array.copy(),
+                overwrite=True)
+            
             visualize_keypoints3d_projected(
                 keypoints=pred_keypoints3d,
                 camera=fisheye_param,
-                output_path=os.path.join(kps3d_output_dir, f'project_view_{view_name}.mp4'),
+                output_path=os.path.join(kps3d_output_dir, f'{view_name}_kps3d_projected.mp4'),
                 background_arr=image_array.copy(),
                 overwrite=True)
             
@@ -169,8 +189,8 @@ def setup_parser():
         help='A text file contains the image path and the corresponding'
         'camera parameters',
         default='./xrmocap_data/Shelf/image_and_camera_param.txt')
-    parser.add_argument('--start_frame', type=int, default=300)
-    parser.add_argument('--end_frame', type=int, default=600)
+    parser.add_argument('--start_frame', type=int, default=0)
+    parser.add_argument('--end_frame', type=int, default=0)
     parser.add_argument(
         '--enable_log_file',
         action='store_true',

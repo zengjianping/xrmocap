@@ -297,20 +297,20 @@ class MvposeAssociator:
         cnt = 0
         this_dim = [0]
         for view, person_id in enumerate(mview_person_id):
-            v_bbox2d = mview_bbox2d[view][person_id]
-            ret_bbox2d.append(v_bbox2d.numpy())
-            img = mview_img_arr[view]
-            v_bbox2d[v_bbox2d < 0] = 0
-            v_cropped_img = [
-                img[:,
-                    int(bbox2d[1]):int(bbox2d[3]),
-                    int(bbox2d[0]):int(bbox2d[2])] for bbox2d in v_bbox2d
-            ]
-            for data in v_cropped_img:
-                cropped_img.append(
-                    self.test_transformer(
-                        Image.fromarray(data.transpose(1, 2, 0))))
             if len(person_id) > 0:
+                v_bbox2d = mview_bbox2d[view][person_id]
+                ret_bbox2d.append(v_bbox2d.numpy())
+                img = mview_img_arr[view]
+                v_bbox2d[v_bbox2d < 0] = 0
+                v_cropped_img = [
+                    img[:,
+                        int(bbox2d[1]):int(bbox2d[3]),
+                        int(bbox2d[0]):int(bbox2d[2])] for bbox2d in v_bbox2d
+                ]
+                for data in v_cropped_img:
+                    cropped_img.append(
+                        self.test_transformer(
+                            Image.fromarray(data.transpose(1, 2, 0))))
                 kps2d.append(
                     mview_keypoints2d[view].get_keypoints()[0][person_id])
 

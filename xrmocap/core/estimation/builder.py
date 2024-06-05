@@ -9,6 +9,9 @@ from .mview_mperson_end2end_estimator import (
 from .mview_mperson_topdown_estimator import (
     MultiViewMultiPersonTopDownEstimator,
 )
+from .mview_mperson_smpl_estimator import (
+    MultiViewMultiPersonSMPLEstimator,
+)
 from .mview_sperson_smpl_estimator import MultiViewSinglePersonSMPLEstimator
 
 # yapf: enable
@@ -22,6 +25,9 @@ ESTIMATORS.register_module(
 ESTIMATORS.register_module(
     name='MultiViewMultiPersonTopDownEstimator',
     module=MultiViewMultiPersonTopDownEstimator)
+ESTIMATORS.register_module(
+    name='MultiViewMultiPersonSMPLEstimator',
+    module=MultiViewMultiPersonSMPLEstimator)
 ESTIMATORS.register_module(
     name='MultiViewMultiPersonEnd2EndEstimator',
     module=MultiViewMultiPersonEnd2EndEstimator)

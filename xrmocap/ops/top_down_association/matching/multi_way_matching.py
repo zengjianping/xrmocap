@@ -278,9 +278,7 @@ class MultiWayMatching(BaseMatching):
             logger.info(table)
         match_mat = cls.transform_closure(X_bin).clone().detach()
 
-        bin_match = match_mat[:,
-                              torch.nonzero(
-                                  torch.sum(match_mat, dim=0) >= n_cam_min).
-                              squeeze()] > 0.9
+        match_indice = torch.nonzero(torch.sum(match_mat, dim=0) >= n_cam_min).squeeze()
+        bin_match = match_mat[:, match_indice] > 0.9
         bin_match = bin_match.reshape(W.shape[0], -1)
         return match_mat, bin_match
