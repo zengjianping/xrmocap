@@ -19,6 +19,9 @@ from xrmocap.core.estimation.builder import build_estimator
 from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints2d
 from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints3d_projected
 from xrprimer.utils.ffmpeg_utils import VideoInfoReader, video_to_array
+from xrprimer.visualization.keypoints.visualize_keypoints3d import (
+    visualize_keypoints3d,
+)
 
 # yapf: enable
 
@@ -105,6 +108,19 @@ def main(args):
             keypoint_dst='smpl',
             model_path='xrmocap_data/body_models',
             batch_size=1)
+
+        # visualize keypoints in a 3D scene
+        logger.info('Visualizing keypoints3d.')
+        visualize_keypoints3d(
+            keypoints=pred_keypoints3d,
+            output_path=os.path.join(args.output_dir, 'keypoints3d_pred.mp4'),
+            overwrite=True,
+            plot_axis=True,
+            plot_points=True,
+            plot_lines=True,
+            disable_tqdm=False,
+            logger=logger)
+
         # prepare camera
         for idx, fisheye_param in enumerate(fisheye_params):
             k_np = np.array(fisheye_param.get_intrinsic(3))
