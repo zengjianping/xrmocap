@@ -56,6 +56,8 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                  kps3d_optimizers: Union[List[Union[BaseOptimizer, dict]], None] = None,
                  pred_kps3d_convention: str = 'coco',
                  load_batch_size: int = 10,
+                 optimize_kps3d: bool = True,
+                 output_smpl: bool = True,
                  verbose: bool = True,
                  logger: Union[None, str, logging.Logger] = None) -> None:
         """Initialization of the class.
@@ -107,6 +109,8 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         self.bbox_thr = bbox_thr
         self.load_batch_size = load_batch_size
         self.pred_kps3d_convention = pred_kps3d_convention
+        self.optimize_kps3d = optimize_kps3d
+        self.output_smpl = output_smpl
 
         super().__init__(work_dir, verbose, logger)
 
@@ -327,21 +331,25 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         self.logger.info('Finished estimating human 2d&3d keypoints.')
         self.logger.info('Optimizing human 3d keypoints...')
 
-        optim_kwargs = dict(
-            mview_kps2d=all_pred_kps2d,
-            mview_kps2d_mask=all_pred_kps2d[..., 2:3] > 0,
-            keypoints2d=selected_keypoints2d_list,
-            mview_person_id=mview_person_id,
-            matched_list=association_results,
-            cam_params=cam_param)
         # Optimizing keypoints3d
-        pred_keypoints3d = self.optimize_keypoints3d(pred_keypoints3d, **optim_kwargs)
+        if self.optimize_kps3d:
+            optim_kwargs = dict(
+                mview_kps2d=all_pred_kps2d,
+                mview_kps2d_mask=all_pred_kps2d[..., 2:3] > 0,
+                keypoints2d=selected_keypoints2d_list,
+                mview_person_id=mview_person_id,
+                matched_list=association_results,
+                cam_params=cam_param)
+            pred_keypoints3d = self.optimize_keypoints3d(pred_keypoints3d, **optim_kwargs)
         
         self.logger.info('Finished optimizing human 3d keypoints.')
         self.logger.info('Estimating human SMPL model...')
 
         # Fitting SMPL model
-        smpl_data_list = self.estimate_smpl(keypoints3d=pred_keypoints3d)
+        if self.output_smpl:
+            smpl_data_list = self.estimate_smpl(keypoints3d=pred_keypoints3d)
+        else:
+            smpl_data_list = None
 
         self.logger.info('Finished estimating human SMPL model.')
         self.logger.info('Finished processing video human pose.')
@@ -516,6 +524,8 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         """
         if self.algo_kps3d_optimizers is not None:
             for optimizer in self.algo_kps3d_optimizers:
+                if hasattr(optimizer, 'triangulator'):
+                    optimizer.triangulator = self.algo_triangulator
                 keypoints3d = optimizer.optimize_keypoints3d(
                     keypoints3d, **optim_kwargs)
         return keypoints3d

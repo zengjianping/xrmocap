@@ -23,7 +23,7 @@ def convert_camera_param(input_file, output_file, camera_idx, width, height):
     intrisic_mat[3, 2] = 1.0
     output_data['intrinsic'] = intrisic_mat.tolist()
     distort_mat = fs.getNode("Distortion").mat()
-    #istort_mat = np.zeros_like(distort_mat)
+    #distort_mat = np.zeros_like(distort_mat)
     output_data['k1'] = distort_mat[0, 0]
     output_data['k2'] = distort_mat[1, 0]
     output_data['p1'] = distort_mat[2, 0]

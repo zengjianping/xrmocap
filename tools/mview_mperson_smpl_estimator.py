@@ -78,27 +78,31 @@ def main(args):
         cam_param=fisheye_params, img_paths=mview_img_list, video_paths=mview_video_list)
     npz_path = os.path.join(args.output_dir, 'pred_keypoints3d.npz')
     pred_keypoints3d.dump(npz_path)
-    for i, smpl_data in enumerate(smpl_data_list):
-        smpl_data.dump(os.path.join(args.output_dir, f'smpl_{i}.npz'))
+
+    if smpl_data_list is not None:
+        for i, smpl_data in enumerate(smpl_data_list):
+            smpl_data.dump(os.path.join(args.output_dir, f'smpl_{i}.npz'))
 
     # Visualization
     if not args.disable_visualization:
         n_frame = pred_keypoints3d['keypoints'].shape[0]
-        n_person = len(smpl_data_list)
-        colors = get_different_colors(n_person)
-        tmp = colors[:, 0].copy()
-        colors[:, 0] = colors[:, 2]
-        colors[:, 2] = tmp
-        full_pose_list = []
-        transl_list = []
-        betas_list = []
-        for smpl_data in smpl_data_list:
-            full_pose_list.append(smpl_data['fullpose'][:, np.newaxis])
-            transl_list.append(smpl_data['transl'][:, np.newaxis])
-            betas_list.append(smpl_data['betas'][:, np.newaxis])
-        fullpose = np.concatenate(full_pose_list, axis=1)
-        transl = np.concatenate(transl_list, axis=1)
-        betas = np.concatenate(betas_list, axis=1)
+
+        if smpl_data_list is not None:
+            n_person = len(smpl_data_list)
+            colors = get_different_colors(n_person)
+            tmp = colors[:, 0].copy()
+            colors[:, 0] = colors[:, 2]
+            colors[:, 2] = tmp
+            full_pose_list = []
+            transl_list = []
+            betas_list = []
+            for smpl_data in smpl_data_list:
+                full_pose_list.append(smpl_data['fullpose'][:, np.newaxis])
+                transl_list.append(smpl_data['transl'][:, np.newaxis])
+                betas_list.append(smpl_data['betas'][:, np.newaxis])
+            fullpose = np.concatenate(full_pose_list, axis=1)
+            transl = np.concatenate(transl_list, axis=1)
+            betas = np.concatenate(betas_list, axis=1)
 
         body_model_cfg = dict(
             type='SMPL',
@@ -110,16 +114,17 @@ def main(args):
             batch_size=1)
 
         # visualize keypoints in a 3D scene
-        logger.info('Visualizing keypoints3d.')
-        visualize_keypoints3d(
-            keypoints=pred_keypoints3d,
-            output_path=os.path.join(args.output_dir, 'keypoints3d_pred.mp4'),
-            overwrite=True,
-            plot_axis=True,
-            plot_points=True,
-            plot_lines=True,
-            disable_tqdm=False,
-            logger=logger)
+        if True:
+            logger.info('Visualizing keypoints3d.')
+            visualize_keypoints3d(
+                keypoints=pred_keypoints3d,
+                output_path=os.path.join(args.output_dir, 'keypoints3d_pred.mp4'),
+                overwrite=True,
+                plot_axis=True,
+                plot_points=True,
+                plot_lines=True,
+                disable_tqdm=True,
+                logger=logger)
 
         # prepare camera
         for idx, fisheye_param in enumerate(fisheye_params):
@@ -159,19 +164,20 @@ def main(args):
                 background_arr=image_array.copy(),
                 overwrite=True)
             
-            visualize_smpl_calibration(
-                poses=fullpose.reshape(n_frame, n_person, -1),
-                betas=betas,
-                transl=transl,
-                palette=colors,
-                output_path=os.path.join(smpl_output_dir, f'{view_name}_smpl.mp4'),
-                body_model_config=body_model_cfg,
-                K=k_np,
-                R=r_np,
-                T=t_np,
-                image_array=image_array,
-                resolution=(image_array.shape[1], image_array.shape[2]),
-                overwrite=True)
+            if smpl_data_list is not None:
+                visualize_smpl_calibration(
+                    poses=fullpose.reshape(n_frame, n_person, -1),
+                    betas=betas,
+                    transl=transl,
+                    palette=colors,
+                    output_path=os.path.join(smpl_output_dir, f'{view_name}_smpl.mp4'),
+                    body_model_config=body_model_cfg,
+                    K=k_np,
+                    R=r_np,
+                    T=t_np,
+                    image_array=image_array,
+                    resolution=(image_array.shape[1], image_array.shape[2]),
+                    overwrite=True)
 
 
 def load_camera_parameters(fisheye_param_paths: List[str]):

@@ -4,6 +4,8 @@ work_dir = './temp'
 verbose = True
 logger = None
 pred_kps3d_convention = 'coco'
+optimize_kps3d = True
+output_smpl = True
 
 bbox_detector = dict(
     type='MMdetDetector',
@@ -212,7 +214,6 @@ point_selectors = [
         convention=pred_kps3d_convention,
     )
 ]
-
 kps3d_optimizers = [
     dict(type='TrajectoryOptimizer', verbose=verbose, logger=logger),
     dict(type='NanInterpolation', verbose=verbose, logger=logger),
