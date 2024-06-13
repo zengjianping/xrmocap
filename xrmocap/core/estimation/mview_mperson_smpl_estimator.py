@@ -375,12 +375,12 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         for view_index in range(img_arr.shape[0]):
             bbox2d_list = self.algo_bbox_detector.infer_array(
                 image_array=img_arr[view_index],
-                disable_tqdm=(not self.verbose),
+                disable_tqdm=True,
                 multi_person=True)
             kps2d_list, _, bbox2d_list = self.algo_kps2d_estimator.infer_array(
                 image_array=img_arr[view_index],
                 bbox_list=bbox2d_list,
-                disable_tqdm=(not self.verbose))
+                disable_tqdm=True)
             keypoints2d = self.algo_kps2d_estimator.get_keypoints_from_result(
                 kps2d_list)
             mview_bbox2d_list.append(bbox2d_list)
@@ -473,7 +473,8 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                 mview_img_arr=mview_batch_arr[:, 0].transpose(0, 3, 1, 2),
                 mview_bbox2d=sframe_bbox2d_list,
                 mview_keypoints2d=sframe_keypoints2d_list,
-                affinity_type='geometry_mean'
+                #affinity_type='geometry_mean'
+                affinity_type='ReID only'
             )
 
         for p_idx in range(len(sframe_association_results)):
@@ -503,12 +504,16 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                 pred_kps3d = np.concatenate(
                     (pred_kps3d, np.zeros((n_frame, n_identity, n_kps, 4))), axis=1)
                 max_identity = identity
-            pred_kps3d[frame_idx, identity] = \
-                np.concatenate((kps3d, np.ones_like(kps3d[:, 0:1])), axis=-1)
+            nan_mask = np.isnan(kps3d).any(axis=1)
+            kps3d_mask = np.ones_like(kps3d[:, 0:1])
+            kps3d_mask[nan_mask] = 0
+            kps3d[nan_mask] = 0
+            pred_kps3d[frame_idx, identity] = np.concatenate((kps3d, kps3d_mask), axis=-1)
 
         for identity in sorted(identities):
             index = identities.index(identity)
             association_results[frame_idx].append(sframe_association_results[index])
+            print('identity: ', identity, sframe_association_results[index])
         selected_keypoints2d.append(sframe_keypoints2d_list)
         
         return max_identity, pred_kps3d
@@ -530,19 +535,6 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                     keypoints3d, **optim_kwargs)
         return keypoints3d
 
-    def estimate_smpl(self, keypoints3d: Keypoints) -> SMPLData:
-        """Estimate smpl parameters according to keypoints3d.
-
-        Args:
-            keypoints3d (Keypoints):
-                A keypoints3d Keypoints instance, with only one person
-                inside. This method will take the person at
-                keypoints3d.get_keypoints()[:, 0, ...] to run smplify.
-
-        Returns:
-            SMPLData:
-                SMPL data of the person.
-        """
     def estimate_smpl(self,
                       keypoints3d: Keypoints,
                       init_smpl_data: Union[None, SMPLData] = None,

@@ -14,7 +14,13 @@ from mmhuman3d.utils.demo_utils import get_different_colors
 from typing import List
 from xrprimer.data_structure.camera import FisheyeCameraParameter
 from xrprimer.utils.log_utils import setup_logger
-
+from xrprimer.transform.convention.world import (
+    BaseWorld,
+    MatplotlibWorld,
+    SenseMoCapWorld,
+    WorldClass,
+    convert_world,
+)
 from xrmocap.core.estimation.builder import build_estimator
 from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints2d
 from xrmocap.visualization.visualize_keypoints3d import visualize_keypoints3d_projected
@@ -120,6 +126,7 @@ def main(args):
                 keypoints=pred_keypoints3d,
                 output_path=os.path.join(args.output_dir, 'keypoints3d_pred.mp4'),
                 overwrite=True,
+                data_world=MatplotlibWorld,
                 plot_axis=True,
                 plot_points=True,
                 plot_lines=True,

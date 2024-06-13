@@ -3,28 +3,50 @@ bbox_thr = 0.6
 work_dir = './temp'
 verbose = True
 logger = None
-pred_kps3d_convention = 'coco_wholebody'
-optimize_kps3d = False
-output_smpl = False
+pred_kps3d_convention = 'golfpose'
+optimize_kps3d = True
+output_smpl = True
 
-bbox_detector = dict(
-    type='MMdetDetector',
-    mmdet_kwargs=dict(
-        checkpoint='weight/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth',
-        config='configs/modules/human_perception/' +
-        'mmdet_faster_rcnn_r50_fpn_coco.py',
-        device='cuda'),
-    batch_size=10)
-
-kps2d_estimator = dict(
-    type='MMposeTopDownEstimator',
-    mmpose_kwargs=dict(
-        checkpoint='weight/hrnet_w48_coco_wholebody' +
-        '_384x288_dark-f5726563_20200918.pth',
-        config='configs/modules/human_perception/mmpose_hrnet_w48_' +
-        'coco_wholebody_384x288_dark_plus.py',
-        device='cuda'),
-    bbox_thr=bbox_thr)
+if True:
+    bbox_detector = dict(
+        type='MMdetDetector', batch_size=10,
+        mmdet_kwargs=dict(device='cuda',
+            checkpoint='weight/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth',
+            config='configs/modules/human_perception/mmdet_faster_rcnn_r50_fpn_coco.py')
+    )
+    kps2d_estimator = dict(
+        type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
+        mmpose_kwargs=dict(device='cuda',
+            checkpoint='weight/hrnet_w48_coco_wholebody_384x288_dark-f5726563_20200918.pth',
+            config='configs/modules/human_perception/mmpose_hrnet_w48_coco_wholebody_384x288_dark_plus.py'),
+    )
+elif False:
+    bbox_detector = dict(
+        type='MMdetDetector', batch_size=10,
+        mmdet_kwargs=dict(device='cuda',
+            checkpoint='weight/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth',
+            config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py',
+        )
+    )
+    kps2d_estimator = dict(
+        type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
+        mmpose_kwargs=dict(device='cuda',
+            checkpoint='weight/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth',
+            config='configs/modules/human_perception/rtmpose-m_8xb256-420e_body8-256x192.py'),
+    )
+else:
+    bbox_detector = dict(
+        type='MMdetTrtDetector', device='cuda', batch_size=10, 
+        deploy_cfg='configs/modules/human_perception/deploy/detection_tensorrt_dynamic-320x320-1344x1344.py',
+        model_cfg='configs/modules/human_perception/mmdet_faster_rcnn_r50_fpn_coco.py',
+        backend_files=['weight/mmdet_faster_rcnn/end2end.engine']
+    )
+    kps2d_estimator = dict(
+        type='MMposeTrtTopDownEstimator', device='cuda', bbox_thr=0.95,
+        deploy_cfg='configs/modules/human_perception/deploy/pose-detection_tensorrt_dynamic-384x288.py',
+        model_cfg='configs/modules/human_perception/mmpose_hrnet_w48_coco_wholebody_384x288_dark_plus.py',
+        backend_files=['weight/mmpose_hrnet/end2end.engine']
+    )
 
 associator = dict(
     type='MvposeAssociator',
@@ -34,21 +56,20 @@ associator = dict(
         logger=logger,
     ),
     affinity_estimator=dict(type='AppearanceAffinityEstimator', init_cfg=None),
-    #point_selector=dict(
-    #    type='HybridKps2dSelector',
-    #    triangulator=dict(
-    #        type='AniposelibTriangulator', camera_parameters=[],
-    #        logger=logger),
-    #    verbose=False,
-    #    ignore_kps_name=['left_eye', 'right_eye', 'left_ear', 'right_ear'],
-    #    convention=pred_kps3d_convention),
-    point_selector=dict(type='ManualThresholdSelector', threshold=0.4, verbose=verbose),
+    #point_selector=dict(type='HybridKps2dSelector', convention=pred_kps3d_convention,
+    #    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[], logger=logger),
+    #    ignore_kps_name=['left_eye', 'right_eye', 'left_ear', 'right_ear'], verbose=False),
+    #point_selector=dict(type='ManualThresholdSelector', threshold=0.0, verbose=verbose),
+    point_selector = dict(type='CameraErrorSelector', target_camera_number=2, verbose=verbose,
+        triangulator=dict(type='AniposelibTriangulator', camera_parameters=[])),
+    #point_selector = dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
+    #    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]), verbose=verbose),
     multi_way_matching=dict(
         type='MultiWayMatching',
         use_dual_stochastic_SVT=True,
         lambda_SVT=50,
-        alpha_SVT=0.05,
-        n_cam_min=2,
+        alpha_SVT=0.01,
+        n_cam_min=3,
     ),
     kalman_tracking=dict(type='KalmanTracking', n_cam_min=3, logger=logger),
     identity_tracking=dict(
@@ -59,14 +80,39 @@ associator = dict(
             'left_shoulder', 'right_shoulder', 'left_hip_extra',
             'right_hip_extra'
         ]),
-    checkpoint_path='./weight/mvpose/' +
-    'resnet50_reid_camstyle-98d61e41_20220921.pth',
+    checkpoint_path='./weight/mvpose/resnet50_reid_camstyle-98d61e41_20220921.pth',
     best_distance=800,
     interval=5,
     bbox_thr=bbox_thr,
     device='cuda',
     logger=logger,
 )
+
+triangulator = dict(
+    type='AniposelibTriangulator',
+    camera_parameters=[],
+    logger=logger,
+)
+#cam_pre_selector = dict(
+#    type='ManualThresholdSelector', threshold=0.4, verbose=verbose)
+#cam_selector = dict(
+#    type='CameraErrorSelector',
+#    target_camera_number=3,
+#    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
+#    verbose=verbose)
+point_selectors = [
+    dict(type='ManualThresholdSelector', threshold=0.0, verbose=verbose),
+    #dict(type='AutoThresholdSelector', start=0.95, stride=-0.025, verbose=verbose)
+    dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
+         triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
+         tolerance_error=50, verbose=verbose)
+]
+
+kps3d_optimizers = [
+    dict(type='NanInterpolation', verbose=verbose),
+    dict(type='AniposelibOptimizerEx', smooth_weight=2.0, verbose=verbose,
+         triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]))
+]
 
 smplify = dict(
     type='SMPLify',
@@ -222,33 +268,3 @@ smplify = dict(
             use_shoulder_hip_only=False),
     ],
 )
-
-triangulator = dict(
-    type='AniposelibTriangulator',
-    camera_parameters=[],
-    logger=logger,
-)
-cam_pre_selector = dict(
-    type='ManualThresholdSelector', threshold=0.4, verbose=verbose)
-cam_selector = dict(
-    type='CameraErrorSelector',
-    target_camera_number=3,
-    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
-    verbose=verbose)
-point_selectors = [
-    # use ManualThresholdSelector to set a lower bound
-    dict(type='ManualThresholdSelector', threshold=0.4, verbose=verbose),
-    dict(
-        type='AutoThresholdSelector',
-        start=0.95,
-        stride=-0.025,
-        verbose=verbose)
-]
-kps3d_optimizers = [
-    dict(type='NanInterpolation', verbose=verbose),
-    dict(
-        type='AniposelibOptimizer',
-        triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
-        smooth_weight=2.0,
-        verbose=verbose)
-]

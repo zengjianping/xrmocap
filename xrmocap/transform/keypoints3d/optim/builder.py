@@ -1,6 +1,7 @@
 from mmcv.utils import Registry
 
 from .aniposelib_optimizer import AniposelibOptimizer
+from .aniposelib_optimizer import AniposelibOptimizerEx
 from .base_optimizer import BaseOptimizer
 from .fourdag_base_optimizer import FourDAGBaseOptimizer
 from .fourdag_optimization import FourDAGOptimizer
@@ -21,6 +22,8 @@ KEYPOINTS3D_OPTIMIZERS.register_module(
     name='MedianSmooth', module=MedianSmooth)
 KEYPOINTS3D_OPTIMIZERS.register_module(
     name='AniposelibOptimizer', module=AniposelibOptimizer)
+KEYPOINTS3D_OPTIMIZERS.register_module(
+    name='AniposelibOptimizerEx', module=AniposelibOptimizerEx)
 KEYPOINTS3D_OPTIMIZERS.register_module(
     name='SMPLShapeAwareOptimizer', module=SMPLShapeAwareOptimizer)
 KEYPOINTS3D_OPTIMIZERS.register_module(

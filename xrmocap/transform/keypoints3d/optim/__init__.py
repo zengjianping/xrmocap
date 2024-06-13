@@ -1,5 +1,6 @@
 # yapf: disable
 from .aniposelib_optimizer import AniposelibOptimizer
+from .aniposelib_optimizer import AniposelibOptimizerEx
 from .base_optimizer import BaseOptimizer
 from .median_smooth import MedianSmooth, median_filter_data
 from .nan_interpolation import (
@@ -13,5 +14,5 @@ from .trajectory_optimizer import TrajectoryOptimizer
 __all__ = [
     'AniposelibOptimizer', 'BaseOptimizer', 'MedianSmooth', 'NanInterpolation',
     'SMPLShapeAwareOptimizer', 'TrajectoryOptimizer', 'count_masked_nan',
-    'interpolate_np_data', 'median_filter_data'
+    'interpolate_np_data', 'median_filter_data', 'AniposelibOptimizerEx'
 ]

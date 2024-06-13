@@ -48,13 +48,10 @@ class KeypointsDistanceTracking(BaseTracking):
         dist_mat = [[] for _ in range(max_identity)]
         for person_t_idx, person_t_kps3d in enumerate(self.tracking_kps3d):
             for person_c_kps3d in curr_kps3d:
-                try:
-                    dist = np.linalg.norm(
-                            person_t_kps3d[self.tracking_kps_idx] -
-                            person_c_kps3d[self.tracking_kps_idx],
-                            ord=2)
-                except:
-                    dist = 1000000
+                dist = np.linalg.norm(
+                        person_t_kps3d[self.tracking_kps_idx] -
+                        person_c_kps3d[self.tracking_kps_idx],
+                        ord=2)
                 dist_mat[person_t_idx].append(dist)
         for person_c_idx in range(len(dist_mat[0])):
             dist_list = []

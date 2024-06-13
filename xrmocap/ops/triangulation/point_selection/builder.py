@@ -6,6 +6,7 @@ from .camera_error_selector import CameraErrorSelector
 from .hybrid_kps2d_selector import HybridKps2dSelector
 from .manual_threshold_selector import ManualThresholdSelector
 from .reprojection_error_point_selector import ReprojectionErrorPointSelector
+from .reprojection_error_point_selector import ReprojectionErrorPointSelectorEx
 from .slow_camera_error_selector import SlowCameraErrorSelector
 
 POINTSELECTORS = Registry('point_selector')
@@ -21,8 +22,9 @@ POINTSELECTORS.register_module(
 POINTSELECTORS.register_module(
     name='HybridKps2dSelector', module=HybridKps2dSelector)
 POINTSELECTORS.register_module(
-    name='ReprojectionErrorPointSelector',
-    module=ReprojectionErrorPointSelector)
+    name='ReprojectionErrorPointSelector', module=ReprojectionErrorPointSelector)
+POINTSELECTORS.register_module(
+    name='ReprojectionErrorPointSelectorEx', module=ReprojectionErrorPointSelectorEx)
 
 
 def build_point_selector(cfg) -> BaseSelector:
