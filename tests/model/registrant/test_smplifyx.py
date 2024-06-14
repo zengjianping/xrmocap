@@ -1,5 +1,5 @@
 # yapf: disable
-import mmcv
+import mmengine
 import numpy as np
 import os
 import pytest
@@ -35,7 +35,7 @@ def fixture():
 def test_build():
     # normally build
     smplifyx_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/model/registrant/smplifyx_test.py'))
     smplifyx_config['device'] = device
     smplifyx = build_registrant(smplifyx_config)
@@ -75,7 +75,7 @@ def test_smplifyx_kps3d():
         dtype=torch.float32, device=device).repeat(kps3d.shape[0], 1)
     # build and run
     smplifyx_config = dict(
-        mmcv.Config.fromfile('configs/modules/model/' +
+        mmengine.Config.fromfile('configs/modules/model/' +
                              'registrant/smplifyx_test.py'))
     smplifyx_config['device'] = device
     smplifyx = build_registrant(smplifyx_config)

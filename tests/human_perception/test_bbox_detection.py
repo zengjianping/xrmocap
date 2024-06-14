@@ -1,7 +1,7 @@
 # yapf: disable
 import cv2
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 import pytest
@@ -41,7 +41,7 @@ def fixture():
 
 def test_mmdet_detector_build():
     detector_config = dict(
-        mmcv.Config.fromfile('configs/modules/human_perception/' +
+        mmengine.Config.fromfile('configs/modules/human_perception/' +
                              'mmdet_faster_rcnn_detector.py'))
     detector_config['mmdet_kwargs']['device'] = device
     # test init
@@ -50,7 +50,7 @@ def test_mmdet_detector_build():
 
 def test_mmdet_detector_infer():
     detector_config = dict(
-        mmcv.Config.fromfile('configs/modules/human_perception/' +
+        mmengine.Config.fromfile('configs/modules/human_perception/' +
                              'mmdet_faster_rcnn_detector.py'))
     detector_config['mmdet_kwargs']['device'] = device
     # test init
@@ -114,7 +114,7 @@ def test_mmdet_detector_infer():
     True, reason='MMTrack is not installed and tested by default.')
 def test_mmtrack_detector_build():
     detector_config = dict(
-        mmcv.Config.fromfile('configs/modules/human_perception/' +
+        mmengine.Config.fromfile('configs/modules/human_perception/' +
                              'mmtrack_faster_rcnn_detector.py'))
     detector_config['mmtrack_kwargs']['device'] = device
     # test init
@@ -125,7 +125,7 @@ def test_mmtrack_detector_build():
     True, reason='MMTrack is not installed and tested by default.')
 def test_mmtrack_detector_infer():
     detector_config = dict(
-        mmcv.Config.fromfile('configs/modules/human_perception/' +
+        mmengine.Config.fromfile('configs/modules/human_perception/' +
                              'mmtrack_faster_rcnn_detector.py'))
     detector_config['mmtrack_kwargs']['device'] = device
     # test init
@@ -215,7 +215,7 @@ def test_mmtrack_detector_infer():
     reason='TensorRT engine has not been found.')
 def test_mmdet_trt_detector_infer():
     detector_config = dict(
-        mmcv.Config.fromfile('configs/modules/human_perception/' +
+        mmengine.Config.fromfile('configs/modules/human_perception/' +
                              'mmdet_trt_faster_rcnn_detector.py'))
     detector_config['device'] = device
     # test init

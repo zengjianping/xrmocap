@@ -1,5 +1,5 @@
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 import pytest
@@ -40,7 +40,7 @@ def test_mmpose_topdown_estimator():
     # shape(4, 1, 5) to list
     single_person_bbox = single_person_bbox['mmdet_result'].tolist()
     estimator_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/human_perception/mmpose_hrnet_estimator.py'))
     device = 'cpu' if not torch.cuda.is_available() else 'cuda'
     estimator_config['mmpose_kwargs']['device'] = device
@@ -138,7 +138,7 @@ def test_mediapipe_estimator():
     # shape(4, 1, 5) to list
     single_person_bbox = single_person_bbox['mmdet_result'].tolist()
     estimator_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/human_perception/mediapipe_pose_estimator.py'))
     # test init
     mp_estimator = build_detector(estimator_config)
@@ -176,7 +176,7 @@ def test_mmpose_trt_topdown_estimator():
     # shape(4, 1, 5) to list
     single_person_bbox = single_person_bbox['mmdet_result'].tolist()
     estimator_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/human_perception/mmpose_trt_hrnet_estimator.py'))
     device = 'cpu' if not torch.cuda.is_available() else 'cuda'
     estimator_config['device'] = device

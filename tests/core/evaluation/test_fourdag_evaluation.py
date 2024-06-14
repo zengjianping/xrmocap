@@ -1,4 +1,5 @@
 import mmcv
+import mmengine
 import os
 import os.path as osp
 import pytest
@@ -19,7 +20,7 @@ def fixture():
 
 def test_fourdag_evaluation():
     evaluation_config = dict(
-        mmcv.Config.fromfile('configs/modules/core/evaluation/' +
+        mmengine.Config.fromfile('configs/modules/core/evaluation/' +
                              'bottom_up_eval_shelf_unittest.py'))
     evaluation_config['output_dir'] = output_dir
     evaluation_config['dataset_visualization']['output_dir'] = output_dir

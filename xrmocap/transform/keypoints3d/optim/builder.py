@@ -1,4 +1,4 @@
-from mmcv.utils import Registry
+from mmengine.registry import Registry
 
 from .aniposelib_optimizer import AniposelibOptimizer
 from .aniposelib_optimizer import AniposelibOptimizerEx

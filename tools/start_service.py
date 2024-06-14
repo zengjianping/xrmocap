@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import json
-import mmcv
+import mmengine
 import os
 from xrprimer.utils.log_utils import logging, setup_logger
 
@@ -13,7 +13,7 @@ from xrmocap.utils.date_utils import get_datetime_local, get_str_from_datetime
 
 def main(args):
     # load config
-    service_config = dict(mmcv.Config.fromfile(args.config_path))
+    service_config = dict(mmengine.Config.fromfile(args.config_path))
     service_name = service_config['name']
     # setup logger
     if not args.disable_log_file:

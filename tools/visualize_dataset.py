@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import datetime
-import mmcv
+import mmengine
 import os
 import shutil
 from xrprimer.utils.log_utils import setup_logger
@@ -13,7 +13,7 @@ from xrmocap.data.data_visualization.builder import build_data_visualization
 
 
 def main(args):
-    vis_config = dict(mmcv.Config.fromfile(args.vis_config))
+    vis_config = dict(mmengine.Config.fromfile(args.vis_config))
     if check_path_existence('logs', 'dir') == Existence.DirectoryNotExist:
         os.mkdir('logs')
     if not args.disable_log_file:

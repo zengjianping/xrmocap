@@ -1,5 +1,5 @@
 # yapf: disable
-import mmcv
+import mmengine
 import numpy as np
 import os
 import pytest
@@ -36,7 +36,7 @@ def fixture():
 def test_build():
     # normally build
     smplify_config = dict(
-        mmcv.Config.fromfile('configs/modules/model/' +
+        mmengine.Config.fromfile('configs/modules/model/' +
                              'registrant/smplify_test.py'))
     smplify_config['device'] = device
     smplify = build_registrant(smplify_config)
@@ -78,7 +78,7 @@ def test_smplify_keypoints3d():
             dtype=torch.float32, device=device).repeat(keypoints3d.shape[0], 1)
     # build and run
     smplify_config = dict(
-        mmcv.Config.fromfile('configs/modules/model/' +
+        mmengine.Config.fromfile('configs/modules/model/' +
                              'registrant/smplify_test.py'))
     smplify_config['device'] = device
     smplify = build_registrant(smplify_config)
@@ -134,7 +134,7 @@ def test_smplify_1frame_keypoints3d():
                                                        1)[:1, ...]
     # build and run
     smplify_config = dict(
-        mmcv.Config.fromfile('configs/modules/model/' +
+        mmengine.Config.fromfile('configs/modules/model/' +
                              'registrant/smplify_test.py'))
     smplify_config['device'] = device
     smplify = build_registrant(smplify_config)

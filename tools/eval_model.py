@@ -1,6 +1,6 @@
 # yapf:disable
 import argparse
-import mmcv
+import mmengine
 from xrprimer.utils.log_utils import setup_logger
 
 from xrmocap.core.train.builder import build_trainer
@@ -43,7 +43,7 @@ def parse_args():
 
     args, rest = parser.parse_known_args()
 
-    config = mmcv.Config.fromfile(args.cfg)
+    config = mmengine.Config.fromfile(args.cfg)
 
     return args, config
 

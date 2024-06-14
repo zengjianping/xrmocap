@@ -1,4 +1,4 @@
-import mmcv
+import mmengine
 
 from xrmocap.data.dataloader.builder import build_dataloader
 from xrmocap.data.dataset.builder import build_dataset
@@ -6,7 +6,7 @@ from xrmocap.data.dataset.builder import build_dataset
 
 def test_build_shelf_dataset():
     dataset_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/dataset/' +
+        mmengine.Config.fromfile('configs/modules/data/dataset/' +
                              'shelf_unittest.py'))
     dataset = build_dataset(dataset_config)
     assert len(dataset) > 0
@@ -14,7 +14,7 @@ def test_build_shelf_dataset():
 
 def test_load_shelf_dataset_w_perception2d():
     dataset_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/dataset/' +
+        mmengine.Config.fromfile('configs/modules/data/dataset/' +
                              'shelf_unittest.py'))
     dataloader_config = dict(
         type='DataLoader', dataset=dataset_config, batch_size=1, num_workers=1)
@@ -52,7 +52,7 @@ def test_load_shelf_dataset_w_perception2d():
 
 def test_load_shelf_dataset_wo_perception2d():
     dataset_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/dataset/' +
+        mmengine.Config.fromfile('configs/modules/data/dataset/' +
                              'shelf_unittest.py'))
     dataset_config['bbox_convention'] = None
     dataset_config['kps2d_convention'] = None
@@ -86,7 +86,7 @@ def test_load_shelf_dataset_wo_perception2d():
 
 def test_load_shelf_dataset_bottom_up():
     dataset_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/dataset/' +
+        mmengine.Config.fromfile('configs/modules/data/dataset/' +
                              'shelf_unittest_bottom_up.py'))
     dataloader_config = dict(
         type='DataLoader', dataset=dataset_config, batch_size=1, num_workers=1)

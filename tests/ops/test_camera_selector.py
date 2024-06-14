@@ -1,5 +1,6 @@
 # yapf: disable
 import mmcv
+import mmengine
 import numpy as np
 import pytest
 from os.path import join
@@ -29,11 +30,11 @@ def test_camera_error_selector():
         cam_param.load(cam_param_path)
         cam_param_list.append(cam_param)
     # build a triangulator
-    triangulator_config = dict(mmcv.Config.fromfile(CONFIG_TRIANGULATOR))
+    triangulator_config = dict(mmengine.Config.fromfile(CONFIG_TRIANGULATOR))
     triangulator_config['camera_parameters'] = cam_param_list
     triangulator = build_triangulator(triangulator_config)
     # build a camera selector
-    camera_selector = dict(mmcv.Config.fromfile(CONFIG_CAM_SELECTOR))
+    camera_selector = dict(mmengine.Config.fromfile(CONFIG_CAM_SELECTOR))
     camera_selector['triangulator']['camera_parameters'] = \
         triangulator.camera_parameters
     camera_selector['target_camera_number'] = \
@@ -74,11 +75,11 @@ def test_slow_camera_error_selector():
         cam_param.load(cam_param_path)
         cam_param_list.append(cam_param)
     # build a triangulator
-    triangulator_config = dict(mmcv.Config.fromfile(CONFIG_TRIANGULATOR))
+    triangulator_config = dict(mmengine.Config.fromfile(CONFIG_TRIANGULATOR))
     triangulator_config['camera_parameters'] = cam_param_list
     triangulator = build_triangulator(triangulator_config)
     # build a camera selector
-    camera_selector = dict(mmcv.Config.fromfile(CONFIG_SLOW_CAM_SELECTOR))
+    camera_selector = dict(mmengine.Config.fromfile(CONFIG_SLOW_CAM_SELECTOR))
     camera_selector['triangulator']['camera_parameters'] = \
         triangulator.camera_parameters
     camera_selector['target_camera_number'] = \

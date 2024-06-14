@@ -1,4 +1,5 @@
 import mmcv
+import mmengine
 import os
 import os.path as osp
 import pytest
@@ -21,7 +22,7 @@ def fixture():
 
 def test_mvpose_evaluation():
     evaluation_config = dict(
-        mmcv.Config.fromfile('configs/modules/core/evaluation/' +
+        mmengine.Config.fromfile('configs/modules/core/evaluation/' +
                              'mview_mperson_eval_shelf_unittest.py'))
     evaluation_config['associator']['device'] = device
     evaluation_config['output_dir'] = output_dir

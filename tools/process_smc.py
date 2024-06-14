@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 import shutil
@@ -53,7 +53,7 @@ def main(args):
     # load smc file
     smc_reader = SMCReader(file_path=args.smc_path)
     # build estimator
-    estimator_config = dict(mmcv.Config.fromfile(args.estimator_config))
+    estimator_config = dict(mmengine.Config.fromfile(args.estimator_config))
     estimator_config['logger'] = logger
     mview_sp_smpl_estimator = build_estimator(estimator_config)
     # load camera parameter and images

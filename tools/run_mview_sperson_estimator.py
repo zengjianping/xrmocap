@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import glob
-import mmcv
+import mmengine
 import os
 from xrprimer.data_structure.camera import (
     FisheyeCameraParameter, PinholeCameraParameter,
@@ -54,7 +54,7 @@ def main(args):
             file_level=logging.DEBUG,
             console_level=logging.INFO)
     # build estimator
-    estimator_config = dict(mmcv.Config.fromfile(args.estimator_config))
+    estimator_config = dict(mmengine.Config.fromfile(args.estimator_config))
     estimator_config['logger'] = logger
     mview_sp_smpl_estimator = build_estimator(estimator_config)
     scene_paths = sorted(glob.glob(os.path.join(args.meta_path, 'scene_*')))

@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import datetime
-import mmcv
+import mmengine
 import os
 from xrprimer.utils.log_utils import setup_logger
 
@@ -18,7 +18,7 @@ def main(args):
         logger = setup_logger(logger_name=__name__, logger_path=log_path)
     else:
         logger = setup_logger(logger_name=__name__)
-    evaluation_config = dict(mmcv.Config.fromfile(args.evaluation_config))
+    evaluation_config = dict(mmengine.Config.fromfile(args.evaluation_config))
     os.makedirs(evaluation_config['output_dir'], exist_ok=True)
     evaluation_config['logger'] = logger
     evaluation = build_evaluation(evaluation_config)

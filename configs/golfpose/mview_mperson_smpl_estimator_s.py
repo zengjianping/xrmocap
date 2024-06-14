@@ -5,9 +5,9 @@ verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
 optimize_kps3d = True
-output_smpl = True
+output_smpl = False
 
-if True:
+if False:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10,
         mmdet_kwargs=dict(device='cuda',
@@ -18,9 +18,9 @@ if True:
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
             checkpoint='weight/hrnet_w48_coco_wholebody_384x288_dark-f5726563_20200918.pth',
-            config='configs/modules/human_perception/mmpose_hrnet_w48_coco_wholebody_384x288_dark_plus.py'),
+            config='configs/modules/human_perception/td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288.py'),
     )
-elif False:
+elif True:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10,
         mmdet_kwargs=dict(device='cuda',

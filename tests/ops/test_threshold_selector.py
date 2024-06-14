@@ -1,5 +1,5 @@
 # yapf: disable
-import mmcv
+import mmengine
 import numpy as np
 
 from xrmocap.ops.triangulation.point_selection.builder import (
@@ -11,7 +11,7 @@ from xrmocap.ops.triangulation.point_selection.builder import (
 
 def test_manual_threshold_selector():
     selector_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/ops/triangulation/manual_threshold_selector.py'))
     selector_config['threshold'] = 0.5
     selector = build_point_selector(selector_config)
@@ -55,7 +55,7 @@ def test_manual_threshold_selector():
 
 def test_auto_threshold_selector():
     selector_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/ops/triangulation/auto_threshold_selector.py'))
     selector = build_point_selector(selector_config)
     # test input not changed

@@ -1,4 +1,4 @@
-import mmcv
+import mmengine
 import os
 import pytest
 import shutil
@@ -20,7 +20,7 @@ def fixture():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_build_mvpose_associator():
     associator_cfg = dict(
-        mmcv.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
+        mmengine.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
                              'mvpose_tracking_associator.py'))
     os.makedirs(output_dir, exist_ok=True)
     associator = build_top_down_associator(associator_cfg)
@@ -31,7 +31,7 @@ def test_build_mvpose_associator():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_run_mvpose_associator():
     associator_cfg = dict(
-        mmcv.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
+        mmengine.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
                              'mvpose_associator.py'))
     os.makedirs(output_dir, exist_ok=True)
     associator = build_top_down_associator(associator_cfg)
@@ -42,7 +42,7 @@ def test_run_mvpose_associator():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_run_mvpose_tracking_associator():
     associator_cfg = dict(
-        mmcv.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
+        mmengine.Config.fromfile('configs/modules/ops/' + 'top_down_association/' +
                              'mvpose_tracking_associator.py'))
     os.makedirs(output_dir, exist_ok=True)
     associator = build_top_down_associator(associator_cfg)

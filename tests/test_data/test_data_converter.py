@@ -1,4 +1,4 @@
-import mmcv
+import mmengine
 import os
 import pytest
 import shutil
@@ -25,7 +25,7 @@ def fixture():
 
 def test_convert_campus():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'campus_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'Campus_unittest')
     meta_path = os.path.join(data_root, 'test_convert_campus')
@@ -44,7 +44,7 @@ def test_convert_campus():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_convert_campus_perception2d():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'campus_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'Campus_unittest')
     meta_path = os.path.join(data_root, 'test_convert_campus_perception2d')
@@ -59,7 +59,7 @@ def test_convert_campus_perception2d():
 
 def test_convert_shelf():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'shelf_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'Shelf_unittest')
     meta_path = os.path.join(data_root, 'test_convert_shelf')
@@ -78,7 +78,7 @@ def test_convert_shelf():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_convert_shelf_perception2d():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'shelf_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'Shelf_unittest')
     meta_path = os.path.join(data_root, 'test_convert_shelf_perception2d')
@@ -93,7 +93,7 @@ def test_convert_shelf_perception2d():
 
 def test_convert_panoptic():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'panoptic_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'panoptic_unittest')
     meta_path = os.path.join(data_root, 'test_convert_panoptic')
@@ -112,7 +112,7 @@ def test_convert_panoptic():
     not torch.cuda.is_available(), reason='No GPU device has been found.')
 def test_convert_panoptic_perception2d():
     converter_config = dict(
-        mmcv.Config.fromfile('configs/modules/data/data_converter/' +
+        mmengine.Config.fromfile('configs/modules/data/data_converter/' +
                              'panoptic_data_converter_unittest.py'))
     data_root = os.path.join(output_dir, 'panoptic_unittest')
     meta_path = os.path.join(data_root, 'test_convert_panoptic_perception2d')

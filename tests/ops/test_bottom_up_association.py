@@ -1,5 +1,6 @@
 # yapf: disable
-import mmcv
+import mmengine
+import mmengine
 import os
 import pytest
 import shutil
@@ -22,7 +23,7 @@ def fixture():
 
 def test_build_bottom_up_associator():
     associator_cfg = dict(
-        mmcv.Config.fromfile('configs/modules/ops/' +
+        mmengine.Config.fromfile('configs/modules/ops/' +
                              'bottom_up_association/' +
                              'fourdag_associator.py'))
     associator = build_bottom_up_associator(associator_cfg)

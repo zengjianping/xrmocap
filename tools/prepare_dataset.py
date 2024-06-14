@@ -1,7 +1,7 @@
 # yapf: disable
 import argparse
 import logging
-import mmcv
+import mmengine
 import os
 import shutil
 from xrprimer.utils.log_utils import setup_logger
@@ -14,7 +14,7 @@ from xrmocap.utils.date_utils import get_datetime_local, get_str_from_datetime
 
 
 def main(args):
-    converter_config = dict(mmcv.Config.fromfile(args.converter_config))
+    converter_config = dict(mmengine.Config.fromfile(args.converter_config))
     if check_path_existence('logs', 'dir') == Existence.DirectoryNotExist:
         os.mkdir('logs')
     filename = os.path.basename(__file__).split('.')[0]
@@ -37,7 +37,7 @@ def main(args):
         logger.info('Not all paths are configured in sys.argv,' +
                     f' use the paths in {args.converter_config}.')
     # save config in log
-    config = mmcv.Config(converter_config, filename=args.converter_config)
+    config = mmengine.Config(converter_config, filename=args.converter_config)
     config_str = config.dump()
     logger.debug('\n' + config_str)
     converter_config['logger'] = logger

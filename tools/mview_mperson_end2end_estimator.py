@@ -3,7 +3,7 @@ import argparse
 import cv2
 import datetime
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 from mmhuman3d.core.visualization.visualize_smpl import (
@@ -36,7 +36,7 @@ def main(args):
         type='MultiViewMultiPersonEnd2EndEstimator',
         logger=logger,
         kps3d_model_path=args.model_dir)
-    estimator_config.update(dict(mmcv.Config.fromfile(args.estimator_config)))
+    estimator_config.update(dict(mmengine.Config.fromfile(args.estimator_config)))
     smpl_estimator = build_estimator(estimator_config)
 
     # load camera parameter and images

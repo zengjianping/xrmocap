@@ -90,23 +90,7 @@ class MMdetDetector:
                     list_batch.append(img)
                 img_batch = list_batch
             mmdet_results = inference_detector(self.det_model, img_batch)
-            additional_ret = True
-            for frame_result in mmdet_results:
-                if len(frame_result) != 2:
-                    additional_ret = False
-                    break
-                for bbox_result in frame_result:
-                    if isinstance(bbox_result, np.ndarray) and \
-                            bbox_result.shape == (0, 5):
-                        additional_ret = False
-                        break
-                if not additional_ret:
-                    break
-            # For models like HTC
-            if additional_ret:
-                bbox_results += [i[0] for i in mmdet_results]
-            else:
-                bbox_results += mmdet_results
+            bbox_results += mmdet_results
         ret_list = process_mmdet_results(
             bbox_results, multi_person=multi_person)
         return ret_list
@@ -220,10 +204,17 @@ def process_mmdet_results(mmdet_results: list,
     """
     ret_list = []
     only_max_arg = not multi_person
-    for _, frame_results in enumerate(mmdet_results):
-        cat_bboxes = frame_results[cat_id]
-        sorted_bbox = qsort_bbox_list(cat_bboxes, only_max_arg)
-
+    for _, det_results in enumerate(mmdet_results):
+        labels = det_results.pred_instances.labels.cpu()
+        bboxes = det_results.pred_instances.bboxes.cpu()
+        bboxes = bboxes[labels == cat_id]
+        bbox_scores = det_results.pred_instances.scores.cpu()
+        bbox_scores = bbox_scores[labels == cat_id]
+        bboxes = np.array(bboxes)
+        bbox_scores = bbox_scores[..., np.newaxis]
+        bboxes = np.concatenate([bboxes, bbox_scores], axis=-1)
+        sorted_bbox = qsort_bbox_list(bboxes, only_max_arg)
+        sorted_bbox= np.array(sorted_bbox)
         if only_max_arg:
             ret_list.append(sorted_bbox[0:1])
         else:

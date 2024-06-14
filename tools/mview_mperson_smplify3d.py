@@ -3,7 +3,7 @@ import argparse
 import cv2
 import datetime
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 from mmhuman3d.core.visualization.visualize_smpl import (
@@ -46,7 +46,7 @@ def main(args):
     perception2d_dict = dict(
         np.load(args.perception2d_path, allow_pickle=True))
     matched_list = np.load(args.matched_kps2d_idx, allow_pickle=True)
-    estimator_config = dict(mmcv.Config.fromfile(args.estimator_config))
+    estimator_config = dict(mmengine.Config.fromfile(args.estimator_config))
     estimator_config['logger'] = logger
     smpl_estimator = build_estimator(estimator_config)
 

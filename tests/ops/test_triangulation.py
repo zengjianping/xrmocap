@@ -1,5 +1,5 @@
 import cv2
-import mmcv
+import mmengine
 import numpy as np
 import os
 import pytest
@@ -37,7 +37,7 @@ def test_aniposelib_triangulator():
         cam_param.load(cam_param_path)
         cam_param_list.append(cam_param)
     triangulator_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/ops/triangulation/aniposelib_triangulator.py'))
     triangulator_config['camera_parameters'] = cam_param_list
     triangulator = build_triangulator(triangulator_config)
@@ -141,7 +141,7 @@ def test_fourdag_triangulator():
         cam_param.load(cam_param_path)
         cam_param_list.append(cam_param)
     triangulator_config = dict(
-        mmcv.Config.fromfile(
+        mmengine.Config.fromfile(
             'configs/modules/ops/triangulation/jacobi_triangulator.py'))
     triangulator_config['camera_parameters'] = cam_param_list
     triangulator = build_triangulator(triangulator_config)

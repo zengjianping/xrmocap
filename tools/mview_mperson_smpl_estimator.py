@@ -3,7 +3,7 @@ import argparse
 import cv2
 import datetime
 import glob
-import mmcv
+import mmengine
 import numpy as np
 import os
 import shutil
@@ -42,7 +42,7 @@ def main(args):
         logger = None
 
     # build estimator
-    estimator_config = dict(mmcv.Config.fromfile(args.estimator_config))
+    estimator_config = dict(mmengine.Config.fromfile(args.estimator_config))
     estimator_config['logger'] = logger
     smpl_estimator = build_estimator(estimator_config)
     # load camera parameter and images
