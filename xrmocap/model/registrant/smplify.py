@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import prettytable
 import torch
-#from mmcv.runner import build_optimizer
+from xrmocap.core.optimizer import build_optimizer
 from mmengine.hooks import Hook
 from typing import List, Union
 from xrprimer.transform.convention.keypoints_convention import (  # noqa:E501

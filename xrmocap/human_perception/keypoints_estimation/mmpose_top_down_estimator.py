@@ -67,8 +67,7 @@ class MMposeTopDownEstimator:
                 Name of the keypoints convention. Must be
                 a key of KEYPOINTS_FACTORY.
         """
-        return __translate_data_source__(
-            self.pose_model.cfg.test_dataloader['dataset']['type'])
+        return __translate_data_source__(self.pose_model.cfg.dataset_type)
 
     def infer_array(self,
                     image_array: Union[np.ndarray, list],
@@ -300,5 +299,7 @@ def __translate_data_source__(mmpose_dataset_name):
         return 'coco_wholebody'
     elif mmpose_dataset_name == 'CocoWholeBodyDataset':
         return 'coco_wholebody'
+    elif mmpose_dataset_name == 'CocoDataset':
+        return 'coco'
     else:
         raise NotImplementedError

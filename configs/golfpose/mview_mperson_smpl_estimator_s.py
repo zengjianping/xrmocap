@@ -5,9 +5,9 @@ verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
 optimize_kps3d = True
-output_smpl = False
+output_smpl = True
 
-if False:
+if True:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10,
         mmdet_kwargs=dict(device='cuda',
@@ -132,8 +132,9 @@ smplify = dict(
         model_path='xrmocap_data/body_models/smpl',
         batch_size=1,
         logger=logger),
-    optimizer=dict(
-        type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe'),
+    optimizer = dict(
+        type='OptimWrapper', # Specify the type of OptimWrapper
+        optimizer=dict(type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe')),
     ignore_keypoints=[
         'neck_openpose', 'right_hip_openpose', 'left_hip_openpose',
         'right_hip_extra', 'left_hip_extra'
