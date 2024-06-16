@@ -4,10 +4,10 @@ work_dir = './temp'
 verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
-optimize_kps3d = True
-output_smpl = True
+optimize_kps3d = False
+output_smpl = False
 
-if True:
+if False:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10,
         mmdet_kwargs=dict(device='cuda',
@@ -18,21 +18,33 @@ if True:
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
             checkpoint='weight/hrnet_w48_coco_wholebody_384x288_dark-f5726563_20200918.pth',
-            config='configs/modules/human_perception/td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288.py'),
+            config='configs/modules/human_perception/td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288.py')
     )
 elif True:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10,
         mmdet_kwargs=dict(device='cuda',
             checkpoint='weight/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth',
-            config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py',
-        )
+            config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py')
+    )
+    kps2d_estimator = dict(
+        type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
+        mmpose_kwargs=dict(device='cuda',
+            checkpoint='datas/models/golfpose/v2/best_AUC_epoch_70.pth',
+            config='datas/models/golfpose/v2/rtmpose-m_golfpose-256x192.py')
+    )
+elif True:
+    bbox_detector = dict(
+        type='MMdetDetector', batch_size=10,
+        mmdet_kwargs=dict(device='cuda',
+            checkpoint='weight/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth',
+            config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py')
     )
     kps2d_estimator = dict(
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
             checkpoint='weight/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth',
-            config='configs/modules/human_perception/rtmpose-m_8xb256-420e_body8-256x192.py'),
+            config='configs/modules/human_perception/rtmpose-m_8xb256-420e_body8-256x192.py')
     )
 else:
     bbox_detector = dict(
@@ -74,7 +86,7 @@ associator = dict(
     kalman_tracking=dict(type='KalmanTracking', n_cam_min=3, logger=logger),
     identity_tracking=dict(
         type='KeypointsDistanceTracking',
-        tracking_distance=1,
+        tracking_distance=100,
         tracking_kps3d_convention=pred_kps3d_convention,
         tracking_kps3d_name=[
             'left_shoulder', 'right_shoulder', 'left_hip_extra',
@@ -101,7 +113,7 @@ triangulator = dict(
 #    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
 #    verbose=verbose)
 point_selectors = [
-    dict(type='ManualThresholdSelector', threshold=0.0, verbose=verbose),
+    dict(type='ManualThresholdSelector', threshold=0.2, verbose=verbose),
     #dict(type='AutoThresholdSelector', start=0.95, stride=-0.025, verbose=verbose)
     dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
          triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),

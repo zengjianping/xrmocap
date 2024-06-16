@@ -6,8 +6,8 @@ end_frame=0
 image_and_camera_param="xrmocap_data/Shelf_50/image_and_camera_param.txt"
 output_dir="output/estimation/Shelf_50/result_is"
 
-image_and_camera_param="xrmocap_data/ezgolf/golf_20240418/image_and_videos/2024-04-17_17-47-34/video_and_camera_param.txt"
-output_dir="output/estimation/ezgolf/2024-04-17_17-47-34/result_vs"
+image_and_camera_param="xrmocap_data/ezgolf/golf_20240418/image_and_videos/2024-04-17_17-47-34/image_and_camera_param.txt"
+output_dir="output/estimation/ezgolf/2024-04-17_17-47-34/result_is"
 
 #image_and_camera_param="xrmocap_data/panoptic/image_and_videos/dance2a/image_and_camera_param.txt"
 #output_dir="output/estimation/panoptic/dance2a/result_is"

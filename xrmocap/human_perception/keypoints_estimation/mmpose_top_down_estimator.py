@@ -118,6 +118,7 @@ class MMposeTopDownEstimator:
         for frame_index in tqdm(range(0, n_frame), disable=disable_tqdm):
             img_arr = image_array[frame_index]
             bboxes_in_frame = bbox_list[frame_index]
+            bboxes_in_frame = bboxes_in_frame[bboxes_in_frame[..., 4] > self.bbox_thr]
             if len(bboxes_in_frame) > 0:
                 pose_results = inference_topdown(self.pose_model, img_arr, bboxes_in_frame[..., 0:4])
                 frame_kps_results = np.zeros(shape=(len(bboxes_in_frame), n_kps, 3))
@@ -301,5 +302,7 @@ def __translate_data_source__(mmpose_dataset_name):
         return 'coco_wholebody'
     elif mmpose_dataset_name == 'CocoDataset':
         return 'coco'
+    elif mmpose_dataset_name == 'GolfPoseDataset':
+        return 'golfpose'
     else:
         raise NotImplementedError
