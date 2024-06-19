@@ -37,6 +37,7 @@ def visualize_keypoints2d(
     height: Union[int, None] = None,
     width: Union[int, None] = None,
     # verbose args
+    only_show: bool = False,
     disable_tqdm: bool = True,
     logger: Union[None, str,
                   logging.Logger] = None) -> Union[None, np.ndarray]:
@@ -205,6 +206,7 @@ def visualize_keypoints2d(
         background_img_list=background_img_list,
         height=height,
         width=width,
+        only_show=only_show,
         disable_tqdm=disable_tqdm,
         logger=logger)
     return ret_value
@@ -233,6 +235,7 @@ def plot_video(
     height: Union[int, None] = None,
     width: Union[int, None] = None,
     # verbose args
+    only_show: bool = False,
     disable_tqdm: bool = False,
     logger: Union[None, str,
                   logging.Logger] = None) -> Union[np.ndarray, None]:
@@ -398,12 +401,15 @@ def plot_video(
             line_palette=line_palette,
             background_arr=background_sframe,
             logger=logger)
-        if write_img:
+        if only_show:
+            cv2.imshow('human keypoints', result_sframe)
+            cv2.waitKey(0)
+        elif write_img:
             cv2.imwrite(
                 filename=os.path.join(output_path,
                                       f'{img_format}' % frame_idx),
                 img=result_sframe)
-        if write_video:
+        elif write_video:
             video_writer = video_writer \
                 if video_writer is not None \
                 else VideoWriter(

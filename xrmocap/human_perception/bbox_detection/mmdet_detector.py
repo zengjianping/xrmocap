@@ -29,6 +29,7 @@ class MMdetDetector:
     def __init__(self,
                  mmdet_kwargs: dict,
                  batch_size: int = 1,
+                 bbox_thr: float = 0.0,
                  logger: Union[None, str, logging.Logger] = None) -> None:
         """Init a detector from mmdetection.
 
@@ -50,6 +51,7 @@ class MMdetDetector:
         # build the detector from a config file and a checkpoint file
         self.det_model = init_detector(**mmdet_kwargs)
         self.batch_size = batch_size
+        self.bbox_thr = bbox_thr
 
     def infer_array(self,
                     image_array: Union[np.ndarray, list],
@@ -91,8 +93,8 @@ class MMdetDetector:
                 img_batch = list_batch
             mmdet_results = inference_detector(self.det_model, img_batch)
             bbox_results += mmdet_results
-        ret_list = process_mmdet_results(
-            bbox_results, multi_person=multi_person)
+        ret_list = process_mmdet_results(bbox_results, multi_person=multi_person,
+            bbox_thr=self.bbox_thr)
         return ret_list
 
     def infer_frames(self,
@@ -175,6 +177,7 @@ class MMdetDetector:
 
 def process_mmdet_results(mmdet_results: list,
                           cat_id: int = 0,
+                          bbox_thr: float = 0.0,
                           multi_person: bool = True) -> list:
     """Process mmdet results, sort bboxes by area in descending order.
 
@@ -213,6 +216,7 @@ def process_mmdet_results(mmdet_results: list,
         bboxes = np.array(bboxes)
         bbox_scores = bbox_scores[..., np.newaxis]
         bboxes = np.concatenate([bboxes, bbox_scores], axis=-1)
+        bboxes = bboxes[np.where(bboxes[:,4] > bbox_thr)]
         sorted_bbox = qsort_bbox_list(bboxes, only_max_arg)
         sorted_bbox= np.array(sorted_bbox)
         if only_max_arg:

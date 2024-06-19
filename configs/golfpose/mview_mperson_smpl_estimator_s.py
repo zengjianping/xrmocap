@@ -1,11 +1,12 @@
 type = 'MultiViewMultiPersonSMPLEstimator'
-bbox_thr = 0.6
+bbox_thr = 0.4
 work_dir = './temp'
 verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
-optimize_kps3d = False
+optimize_kps3d = True
 output_smpl = False
+multi_person = False
 
 if False:
     bbox_detector = dict(
@@ -22,15 +23,15 @@ if False:
     )
 elif True:
     bbox_detector = dict(
-        type='MMdetDetector', batch_size=10,
-        mmdet_kwargs=dict(device='cuda',
-            checkpoint='weight/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth',
-            config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py')
+        type='MMdetDetector', batch_size=10, bbox_thr=bbox_thr,
+        mmdet_kwargs=dict(device='cuda', palette='random',
+            checkpoint='datas/models/golfdet/v1/epoch_70.pth',
+            config='datas/models/golfdet/v1/rtmdet_tiny_8xb32-300e_golfpose.py')
     )
     kps2d_estimator = dict(
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
-            checkpoint='datas/models/golfpose/v2/best_AUC_epoch_70.pth',
+            checkpoint='datas/models/golfpose/v2/best_AUC_epoch_100.pth',
             config='datas/models/golfpose/v2/rtmpose-m_golfpose-256x192.py')
     )
 elif True:
@@ -80,8 +81,8 @@ associator = dict(
         type='MultiWayMatching',
         use_dual_stochastic_SVT=True,
         lambda_SVT=50,
-        alpha_SVT=0.01,
-        n_cam_min=3,
+        alpha_SVT=0.0001,
+        n_cam_min=2,
     ),
     kalman_tracking=dict(type='KalmanTracking', n_cam_min=3, logger=logger),
     identity_tracking=dict(
@@ -113,11 +114,11 @@ triangulator = dict(
 #    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
 #    verbose=verbose)
 point_selectors = [
-    dict(type='ManualThresholdSelector', threshold=0.2, verbose=verbose),
+    dict(type='ManualThresholdSelector', threshold=0.0, verbose=verbose),
     #dict(type='AutoThresholdSelector', start=0.95, stride=-0.025, verbose=verbose)
     dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
          triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
-         tolerance_error=50, verbose=verbose)
+         tolerance_error=100, verbose=verbose)
 ]
 
 kps3d_optimizers = [

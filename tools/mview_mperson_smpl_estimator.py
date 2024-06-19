@@ -80,8 +80,10 @@ def main(args):
                 end_frame = len(sview_img_list)
             sview_img_list = sview_img_list[start_frame:end_frame]
             mview_img_list.append(sview_img_list)
+
     pred_keypoints2d_list, pred_keypoints3d, smpl_data_list = smpl_estimator.run(
         cam_param=fisheye_params, img_paths=mview_img_list, video_paths=mview_video_list)
+
     npz_path = os.path.join(args.output_dir, 'pred_keypoints3d.npz')
     pred_keypoints3d.dump(npz_path)
 
@@ -133,6 +135,13 @@ def main(args):
                 disable_tqdm=True,
                 logger=logger)
 
+        kps2d_output_dir = os.path.join(args.output_dir, 'kps2d')
+        os.makedirs(kps2d_output_dir, exist_ok=True)
+        kps3d_output_dir = os.path.join(args.output_dir, 'kps3d')
+        os.makedirs(kps3d_output_dir, exist_ok=True)
+        smpl_output_dir = os.path.join(args.output_dir, 'smpl')
+        os.makedirs(smpl_output_dir, exist_ok=True)
+
         # prepare camera
         for idx, fisheye_param in enumerate(fisheye_params):
             k_np = np.array(fisheye_param.get_intrinsic(3))
@@ -151,33 +160,41 @@ def main(args):
                     image_list.append(image_np)
                 image_array = np.array(image_list)
 
-            kps2d_output_dir = os.path.join(args.output_dir, 'kps2d')
-            os.makedirs(kps2d_output_dir, exist_ok=True)
-            kps3d_output_dir = os.path.join(args.output_dir, 'kps3d')
-            os.makedirs(kps3d_output_dir, exist_ok=True)
-            smpl_output_dir = os.path.join(args.output_dir, 'smpl')
-            os.makedirs(smpl_output_dir, exist_ok=True)
-
+            if args.output_images:
+                kps2d_output_path = os.path.join(kps2d_output_dir, f'{view_name}')
+                os.makedirs(kps2d_output_path, exist_ok=True)
+            else:
+                kps2d_output_path = os.path.join(kps2d_output_dir, f'{view_name}_kps2d.mp4')
             visualize_keypoints2d(
                 keypoints=pred_keypoints2d_list[idx],
-                output_path=os.path.join(kps2d_output_dir, f'{view_name}_kps2d.mp4'),
+                output_path=kps2d_output_path,
                 background_arr=image_array.copy(),
                 overwrite=True)
             
+            if args.output_images:
+                kps3d_output_path = os.path.join(kps3d_output_dir, f'{view_name}')
+                os.makedirs(kps3d_output_path, exist_ok=True)
+            else:
+                kps3d_output_path = os.path.join(kps3d_output_dir, f'{view_name}_kps3d_projected.mp4')
             visualize_keypoints3d_projected(
                 keypoints=pred_keypoints3d,
                 camera=fisheye_param,
-                output_path=os.path.join(kps3d_output_dir, f'{view_name}_kps3d_projected.mp4'),
+                output_path=kps3d_output_path,
                 background_arr=image_array.copy(),
                 overwrite=True)
             
+            if args.output_images:
+                smpl_output_path = os.path.join(smpl_output_dir, f'{view_name}')
+                os.makedirs(smpl_output_path, exist_ok=True)
+            else:
+                smpl_output_path = os.path.join(smpl_output_dir, f'{view_name}_smpl.mp4')
             if smpl_data_list is not None:
                 visualize_smpl_calibration(
                     poses=fullpose.reshape(n_frame, n_person, -1),
                     betas=betas,
                     transl=transl,
                     palette=colors,
-                    output_path=os.path.join(smpl_output_dir, f'{view_name}_smpl.mp4'),
+                    output_path=smpl_output_path,
                     body_model_config=body_model_cfg,
                     K=k_np,
                     R=r_np,
@@ -229,6 +246,11 @@ def setup_parser():
         '--disable_visualization',
         action='store_true',
         help='If checked, visualize result.',
+        default=False)
+    parser.add_argument(
+        '--output_images',
+        action='store_true',
+        help='If checked, output images.',
         default=False)
     args = parser.parse_args()
     return args

@@ -34,6 +34,7 @@ from xrmocap.ops.triangulation.point_selection.builder import (
     BaseSelector, CameraErrorSelector, build_point_selector,
 )
 from xrmocap.transform.keypoints3d.optim.builder import BaseOptimizer
+from xrmocap.visualization.visualize_keypoints2d import visualize_keypoints2d
 
 # yapf: enable
 
@@ -58,6 +59,7 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                  load_batch_size: int = 10,
                  optimize_kps3d: bool = True,
                  output_smpl: bool = True,
+                 multi_person: bool = True,
                  verbose: bool = True,
                  logger: Union[None, str, logging.Logger] = None) -> None:
         """Initialization of the class.
@@ -111,6 +113,7 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         self.pred_kps3d_convention = pred_kps3d_convention
         self.optimize_kps3d = optimize_kps3d
         self.output_smpl = output_smpl
+        self.multi_person = multi_person
 
         super().__init__(work_dir, verbose, logger)
 
@@ -374,17 +377,18 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         mview_keypoints2d_list = []
         for view_index in range(img_arr.shape[0]):
             bbox2d_list = self.algo_bbox_detector.infer_array(
-                image_array=img_arr[view_index],
-                disable_tqdm=True,
-                multi_person=True)
+                image_array=img_arr[view_index], disable_tqdm=True,
+                multi_person=self.multi_person)
             kps2d_list, _, bbox2d_list = self.algo_kps2d_estimator.infer_array(
                 image_array=img_arr[view_index],
-                bbox_list=bbox2d_list,
-                disable_tqdm=True)
+                bbox_list=bbox2d_list, disable_tqdm=True)
             keypoints2d = self.algo_kps2d_estimator.get_keypoints_from_result(
                 kps2d_list)
             mview_bbox2d_list.append(bbox2d_list)
             mview_keypoints2d_list.append(keypoints2d)
+            #print('keypoints2d:', keypoints2d)
+            #visualize_keypoints2d(keypoints2d, 'temps/', only_show=True,
+            #    background_arr=img_arr[view_index])
 
         return mview_bbox2d_list, mview_keypoints2d_list
 
@@ -435,6 +439,8 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
         sframe_bbox2d_list = []
         sframe_keypoints2d_list = []
         sframe_association_results = []
+        sframe_person_counts = []
+        identities = []
 
         for view_idx in range(n_view):
             sview_kps2d_idx = []
@@ -464,18 +470,32 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                         kps=np.zeros((1, 1, n_kps, 3)),
                         mask=np.zeros((1, 1, n_kps)),
                         convention=self.pred_kps3d_convention))
+            sframe_person_counts.append(len(sview_kps2d_idx))
 
         # Establish cross-frame and cross-person associations
-        sframe_association_results, predict_keypoints3d, identities = \
-            self.algo_associator.associate_frame(
-                # Dimension definition varies between
-                # cv2 images and tensor images.
-                mview_img_arr=mview_batch_arr[:, 0].transpose(0, 3, 1, 2),
-                mview_bbox2d=sframe_bbox2d_list,
-                mview_keypoints2d=sframe_keypoints2d_list,
-                #affinity_type='geometry_mean'
-                affinity_type='ReID only'
-            )
+        if self.multi_person:
+            sframe_association_results, predict_keypoints3d, identities = \
+                self.algo_associator.associate_frame(
+                    # Dimension definition varies between
+                    # cv2 images and tensor images.
+                    mview_img_arr=mview_batch_arr[:, 0].transpose(0, 3, 1, 2),
+                    mview_bbox2d=sframe_bbox2d_list,
+                    mview_keypoints2d=sframe_keypoints2d_list,
+                    #affinity_type='geometry_mean'
+                    affinity_type='ReID only'
+                )
+        else:
+            association_result = []
+            valid_views = 0
+            for idx, count in enumerate(sframe_person_counts):
+                if count > 0:
+                    association_result.append(0)
+                    valid_views += 1
+                else:
+                    association_result.append(np.nan)
+            if valid_views >= 2:
+                sframe_association_results.append(association_result)
+                identities.append(0)
 
         for p_idx in range(len(sframe_association_results)):
             # Triangulation, one associated person per time
