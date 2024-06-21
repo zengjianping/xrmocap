@@ -5,12 +5,12 @@ verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
 optimize_kps3d = True
-output_smpl = False
+output_smpl = True
 multi_person = False
 
 if False:
     bbox_detector = dict(
-        type='MMdetDetector', batch_size=10,
+        type='MMdetDetector', batch_size=10, bbox_thr=bbox_thr,
         mmdet_kwargs=dict(device='cuda',
             checkpoint='weight/faster_rcnn_r50_fpn_1x_coco_20200130-047c8118.pth',
             config='configs/modules/human_perception/mmdet_faster_rcnn_r50_fpn_coco.py')
@@ -25,18 +25,18 @@ elif True:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10, bbox_thr=bbox_thr,
         mmdet_kwargs=dict(device='cuda', palette='random',
-            checkpoint='datas/models/golfdet/v1/epoch_70.pth',
+            checkpoint='datas/models/golfdet/v1/epoch_100.pth',
             config='datas/models/golfdet/v1/rtmdet_tiny_8xb32-300e_golfpose.py')
     )
     kps2d_estimator = dict(
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
-            checkpoint='datas/models/golfpose/v2/best_AUC_epoch_100.pth',
+            checkpoint='datas/models/golfpose/v3/best_AUC_epoch_100.pth',
             config='datas/models/golfpose/v2/rtmpose-m_golfpose-256x192.py')
     )
 elif True:
     bbox_detector = dict(
-        type='MMdetDetector', batch_size=10,
+        type='MMdetDetector', batch_size=10, bbox_thr=bbox_thr,
         mmdet_kwargs=dict(device='cuda',
             checkpoint='weight/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth',
             config='configs/modules/human_perception/rtmdet_m_640-8xb32_coco-person.py')
@@ -118,7 +118,7 @@ point_selectors = [
     #dict(type='AutoThresholdSelector', start=0.95, stride=-0.025, verbose=verbose)
     dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
          triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
-         tolerance_error=100, verbose=verbose)
+         tolerance_error=40, verbose=verbose)
 ]
 
 kps3d_optimizers = [

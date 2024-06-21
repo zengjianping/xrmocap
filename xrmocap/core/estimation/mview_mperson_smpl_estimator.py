@@ -1,5 +1,6 @@
 # yapf: disable
 import logging
+import cv2
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -331,6 +332,21 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                     (n_view, n_frame, (n_person_cur - n_person_all), n_kps, 3))), axis=2)
             all_pred_kps2d[view_idx, :, 0:n_person_cur, ...] = pred_kps2d
 
+        def solve_camera_pose(kps3d, all_kps2d, camera_params):
+            for view_idx in range(all_kps2d.shape[0]):
+                v_kps3d = kps3d[:, :, 5:]
+                v_kps2d = all_kps2d[view_idx][:, :, 5:]
+                valids = np.logical_and(v_kps3d[...,3] > 0, v_kps2d[...,2] > 0)
+                c_kps3d = v_kps3d[np.where(valids)][...,0:3].astype(np.float32)
+                c_kps2d = v_kps2d[np.where(valids)][...,0:2].astype(np.float32)
+                camera_param:FisheyeCameraParameter = camera_params[view_idx]
+                camera_matrix = np.array(camera_param.get_intrinsic())
+                distort_coef = np.array(camera_param.get_dist_coeff()).reshape((-1,1))
+                ret, rvecs, tvecs = cv2.solvePnP(c_kps3d, c_kps2d, camera_matrix, distort_coef)
+                rotM = cv2.Rodrigues(rvecs)[0]
+                print(ret, rvecs, tvecs, rotM)
+        #solve_camera_pose(pred_kps3d, all_pred_kps2d, cam_param)
+
         self.logger.info('Finished estimating human 2d&3d keypoints.')
         self.logger.info('Optimizing human 3d keypoints...')
 
@@ -471,6 +487,7 @@ class MultiViewMultiPersonSMPLEstimator(BaseEstimator):
                         mask=np.zeros((1, 1, n_kps)),
                         convention=self.pred_kps3d_convention))
             sframe_person_counts.append(len(sview_kps2d_idx))
+        #sframe_person_counts[-1] = 0
 
         # Establish cross-frame and cross-person associations
         if self.multi_person:
