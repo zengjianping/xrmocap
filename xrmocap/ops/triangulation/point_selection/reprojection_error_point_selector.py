@@ -167,6 +167,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
                  target_camera_number: int,
                  triangulator: Union[BaseTriangulator, dict],
                  tolerance_error: Union[int, float] = None,
+                 distance_sigma: Union[int, float] = 25,
                  verbose: bool = True,
                  logger: Union[None, str, logging.Logger] = None) -> None:
         """Select points according to camera reprojection error. This selector
@@ -199,6 +200,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
         else:
             self.triangulator = triangulator
         self.tolerance_error = tolerance_error
+        self.distance_sigma = distance_sigma
 
     def get_selection_mask(
             self,
@@ -238,7 +240,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
         points2d_mask = init_points_mask.copy()
         for point_idx in range(n_point):
             selected_view = self.get_view_index(
-                point=points[:, point_idx:point_idx+1, 0:2],
+                point=points[:, point_idx:point_idx+1, 0:3],
                 init_point_mask=init_points_mask[:, point_idx:point_idx+1])
             points2d_mask[:, point_idx] = 0
             if selected_view is not None:
@@ -282,28 +284,40 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
 
         remain_view = np.array([-1], dtype=int)
         while True:
+            opt_view_conf = None
             opt_mean_error = None
+            opt_point_3d = None
             opt_point_mask = curr_point_mask
             for view_idx in remain_view:
                 point_mask = curr_point_mask.copy()
                 if view_idx >= 0:
                     point_mask[view_idx, ...] = 0
-                point3d = self.triangulator.triangulate(points=point, points_mask=point_mask)
-                prj_error = self.triangulator.get_reprojection_error(points2d=point,
-                    points3d=point3d, points_mask=point_mask)
-                abs_error = np.abs(prj_error)
-                mean_error = np.nanmean(abs_error, keepdims=False)
+                selected_indice = list()
+                for idx, val in enumerate(point_mask[:,0,0]):
+                    if val > 0:
+                        selected_indice.append(idx)
+                point3d = self.triangulator.triangulate(
+                    points=point[...,0:2], points_mask=point_mask)
+                proj_error = self.triangulator.get_reprojection_error(
+                    points2d=point[...,0:2], points3d=point3d, points_mask=point_mask)
+                dist_error = np.linalg.norm(proj_error[selected_indice,0,:], axis=1)
+                mean_error = np.mean(dist_error, keepdims=False)
+                view_conf = np.prod(np.exp(-dist_error/self.distance_sigma) * point[selected_indice,0,2])
                 if opt_mean_error is None or opt_mean_error > mean_error:
+                #if opt_view_conf is None or opt_view_conf < view_conf:
+                    opt_view_conf = view_conf
                     opt_mean_error = mean_error
+                    opt_point_3d = point3d
                     opt_point_mask = point_mask
             curr_point_mask = opt_point_mask
             remain_view = np.where(np.sum(curr_point_mask.reshape(n_view, -1), axis=-1) >= 1)[0]
-            cond1 = self.tolerance_error is None and len(remain_view) == self.target_camera_number
-            cond2 = self.tolerance_error is not None and opt_mean_error <= self.tolerance_error \
-                and len(remain_view) >= self.target_camera_number
+            cond1 = len(remain_view) == self.target_camera_number and self.tolerance_error is None
+            cond2 = len(remain_view) == self.target_camera_number and self.tolerance_error is not None \
+                    and opt_mean_error <= self.tolerance_error
             if cond1 or cond2:
                 best_remain_view = remain_view
-                #print('best_remain_view', best_remain_view, opt_mean_error)
+                #print('best remain view:', best_remain_view, list(point[best_remain_view]))
+                #print('error information:', opt_view_conf, opt_mean_error, opt_point_3d)
                 break
             elif len(remain_view) <= self.target_camera_number:
                 if np.isnan(opt_mean_error):

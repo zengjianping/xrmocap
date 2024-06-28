@@ -3,6 +3,7 @@ import argparse, logging
 import shutil, glob, json
 import numpy as np
 
+from mmhuman3d.utils.demo_utils import get_different_colors
 from xrprimer.data_structure.camera import FisheyeCameraParameter
 
 

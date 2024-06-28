@@ -135,12 +135,12 @@ class AniposelibTriangulator(BaseTriangulator):
             if isinstance(cam_param, FisheyeCameraParameter):
                 dist = [
                     cam_param.k1, cam_param.k2, cam_param.p1, cam_param.p2,
-                    cam_param.k3
+                    cam_param.k3, cam_param.k4, cam_param.k5, cam_param.k6
                 ]
             else:
                 dist = [
                     0.0,
-                ] * 5
+                ] * 8
             args_dict = dict(
                 name=cam_param.name,
                 dist=dist,
