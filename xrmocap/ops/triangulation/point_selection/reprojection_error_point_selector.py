@@ -288,6 +288,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
             opt_mean_error = None
             opt_point_3d = None
             opt_point_mask = curr_point_mask
+            view_infos = list()
             for view_idx in remain_view:
                 point_mask = curr_point_mask.copy()
                 if view_idx >= 0:
@@ -309,6 +310,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
                     opt_mean_error = mean_error
                     opt_point_3d = point3d
                     opt_point_mask = point_mask
+                view_infos.append((selected_indice, mean_error))
             curr_point_mask = opt_point_mask
             remain_view = np.where(np.sum(curr_point_mask.reshape(n_view, -1), axis=-1) >= 1)[0]
             cond1 = len(remain_view) == self.target_camera_number and self.tolerance_error is None
@@ -316,16 +318,18 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
                     and opt_mean_error <= self.tolerance_error
             if cond1 or cond2:
                 best_remain_view = remain_view
-                #print('best remain view:', best_remain_view, list(point[best_remain_view]))
-                #print('error information:', opt_view_conf, opt_mean_error, opt_point_3d)
+                print('best remain view:', best_remain_view, opt_mean_error, opt_view_conf)
+                #print('point information:', opt_point_3d, list(point[best_remain_view]))
                 break
-            elif len(remain_view) <= self.target_camera_number:
-                if np.isnan(opt_mean_error):
-                    self.logger.error('Too many invalid views. Number of valid views is lower than' +
-                        f' target_camera_number {self.target_camera_number}.')
-                else:
-                    self.logger.error(f'Reprojection error {opt_mean_error} is greater than' +
-                        f' tolerance error {self.tolerance_error}.')
+            elif len(remain_view) == self.target_camera_number:
+                self.logger.error(f'Reprojection error {opt_mean_error} is greater than' +
+                    f' tolerance error {self.tolerance_error}, and remain views is {remain_view}.'
+                    f' View information is {view_infos}.')
+                break
+            elif len(remain_view) < self.target_camera_number:
+                self.logger.error(f'Too many invalid views. Number of valid views {len(remain_view)}' +
+                    f' is lower than target_camera_number {self.target_camera_number}.'
+                    f' Reprojection error is {opt_mean_error}.')
                 break
 
         return best_remain_view
