@@ -12,6 +12,19 @@ from .base_selector import BaseSelector
 
 # yapf: enable
 
+def combine_number(count, start, end):
+    if count == 0:
+        return [[]]
+    seq = []
+    if count <= end-1 - start:
+        seq1 = combine_number(count, start, end-1)
+        seq.extend(seq1)
+    if count-1 <= end-1 - start:
+        seq2 = combine_number(count-1, start, end-1)
+        for s in seq2:
+            s.append(end-1)
+        seq.extend(seq2)
+    return seq
 
 class ReprojectionErrorPointSelector(BaseSelector):
 
@@ -166,6 +179,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
     def __init__(self,
                  target_camera_number: int,
                  triangulator: Union[BaseTriangulator, dict],
+                 only_tolerance: bool = False,
                  tolerance_error: Union[int, float] = None,
                  distance_sigma: Union[int, float] = 25,
                  verbose: bool = True,
@@ -199,6 +213,7 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
             self.triangulator = build_triangulator(triangulator)
         else:
             self.triangulator = triangulator
+        self.only_tolerance = only_tolerance
         self.tolerance_error = tolerance_error
         self.distance_sigma = distance_sigma
 
@@ -279,58 +294,66 @@ class ReprojectionErrorPointSelectorEx(BaseSelector):
                 length == self.target_camera_number.
         """
         best_remain_view = None
-        curr_point_mask = init_point_mask.copy()
-        n_view = init_point_mask.shape[0]
+        opt_view_indice = None
+        opt_view_conf = None
+        opt_mean_error = None
+        opt_point_3d = None
+        view_infos = list()
 
-        remain_view = np.array([-1], dtype=int)
-        while True:
+        num_views = init_point_mask.shape[0]
+        init_view_mask = np.sum(init_point_mask.reshape(num_views, -1), axis=-1)
+        init_valid_view = np.where(init_view_mask >= 1)[0]
+        num_valid_views = len(init_valid_view)
+        opt_view_indice = init_valid_view.tolist()
+
+        init_camera_number = min(num_valid_views, self.target_camera_number)
+        if self.only_tolerance and self.tolerance_error is not None:
+            init_camera_number = num_valid_views
+
+        for camera_number in range(init_camera_number, self.target_camera_number-1, -1):
+            view_indice_combo = combine_number(camera_number, 0, num_valid_views)
+
+            opt_view_indice = None
             opt_view_conf = None
             opt_mean_error = None
             opt_point_3d = None
-            opt_point_mask = curr_point_mask
             view_infos = list()
-            for view_idx in remain_view:
-                point_mask = curr_point_mask.copy()
-                if view_idx >= 0:
-                    point_mask[view_idx, ...] = 0
-                selected_indice = list()
-                for idx, val in enumerate(point_mask[:,0,0]):
-                    if val > 0:
-                        selected_indice.append(idx)
+
+            for view_indice in view_indice_combo:
+                view_indice = init_valid_view[view_indice].tolist()
+                point_mask = np.zeros_like(init_point_mask)
+                for view_idx in view_indice:
+                    point_mask[view_idx, ...] = 1
                 point3d = self.triangulator.triangulate(
                     points=point[...,0:2], points_mask=point_mask)
                 proj_error = self.triangulator.get_reprojection_error(
                     points2d=point[...,0:2], points3d=point3d, points_mask=point_mask)
-                dist_error = np.linalg.norm(proj_error[selected_indice,0,:], axis=1)
+                dist_error = np.linalg.norm(proj_error[view_indice,0,:], axis=1)
                 mean_error = np.mean(dist_error, keepdims=False)
-                view_conf = np.prod(np.exp(-dist_error/self.distance_sigma) * point[selected_indice,0,2])
+                view_conf = np.prod(np.exp(-dist_error/self.distance_sigma) * point[view_indice,0,2])
+                view_infos.append((view_indice, mean_error))
+
                 if opt_mean_error is None or opt_mean_error > mean_error:
                 #if opt_view_conf is None or opt_view_conf < view_conf:
+                    opt_view_indice = view_indice
                     opt_view_conf = view_conf
                     opt_mean_error = mean_error
                     opt_point_3d = point3d
-                    opt_point_mask = point_mask
-                view_infos.append((selected_indice, mean_error))
-            curr_point_mask = opt_point_mask
-            remain_view = np.where(np.sum(curr_point_mask.reshape(n_view, -1), axis=-1) >= 1)[0]
-            cond1 = len(remain_view) == self.target_camera_number and self.tolerance_error is None
-            cond2 = len(remain_view) == self.target_camera_number and self.tolerance_error is not None \
-                    and opt_mean_error <= self.tolerance_error
-            if cond1 or cond2:
-                best_remain_view = remain_view
-                print('best remain view:', best_remain_view, opt_mean_error, opt_view_conf)
+
+            if self.tolerance_error is None or opt_mean_error <= self.tolerance_error:
+                best_remain_view = opt_view_indice
+                #print('best remain view:', best_remain_view, opt_mean_error, opt_view_conf)
                 #print('point information:', opt_point_3d, list(point[best_remain_view]))
                 break
-            elif len(remain_view) == self.target_camera_number:
+            
+        if best_remain_view is None:
+            if len(opt_view_indice) == self.target_camera_number:
                 self.logger.error(f'Reprojection error {opt_mean_error} is greater than' +
-                    f' tolerance error {self.tolerance_error}, and remain views is {remain_view}.'
+                    f' tolerance error {self.tolerance_error}, and remain views is {opt_view_indice}.'
                     f' View information is {view_infos}.')
-                break
-            elif len(remain_view) < self.target_camera_number:
-                self.logger.error(f'Too many invalid views. Number of valid views {len(remain_view)}' +
-                    f' is lower than target_camera_number {self.target_camera_number}.'
-                    f' Reprojection error is {opt_mean_error}.')
-                break
+            else:
+                self.logger.error(f'Too many invalid views. Number of valid views {len(opt_view_indice)}' +
+                    f' is lower than target_camera_number {self.target_camera_number}.')
 
         return best_remain_view
 
