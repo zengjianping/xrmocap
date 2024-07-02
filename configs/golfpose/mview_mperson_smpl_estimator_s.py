@@ -5,7 +5,7 @@ verbose = True
 logger = None
 pred_kps3d_convention = 'golfpose'
 optimize_kps3d = True
-output_smpl = True
+output_smpl = False
 multi_person = False
 
 if False:
@@ -32,7 +32,7 @@ elif True:
         type='MMposeTopDownEstimator', bbox_thr=bbox_thr,
         mmpose_kwargs=dict(device='cuda',
             checkpoint='datas/models/golfpose/v3/best_AUC_epoch_100.pth',
-            config='datas/models/golfpose/v2/rtmpose-m_golfpose-256x192.py')
+            config='datas/models/golfpose/v3/rtmpose-m_golfpose-256x192.py')
     )
 elif True:
     bbox_detector = dict(
@@ -114,11 +114,14 @@ triangulator = dict(
 #    triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
 #    verbose=verbose)
 point_selectors = [
-    dict(type='ManualThresholdSelector', threshold=0.0, verbose=verbose),
     #dict(type='AutoThresholdSelector', start=0.95, stride=-0.025, verbose=verbose)
+    dict(type='ManualThresholdSelector', threshold=0.1, verbose=verbose),
     dict(type='ReprojectionErrorPointSelectorEx', target_camera_number=3,
          triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
-         tolerance_error=40, verbose=verbose)
+         tolerance_error=50, distance_sigma=25, verbose=verbose),
+    #dict(type='HybridKps2dSelectorEx', convention=pred_kps3d_convention, verbose=verbose,
+    #     triangulator=dict(type='AniposelibTriangulator', camera_parameters=[]),
+    #     ignore_kps_name=['left_eye', 'right_eye', 'left_ear', 'right_ear']),
 ]
 
 kps3d_optimizers = [
