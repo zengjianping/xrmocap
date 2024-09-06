@@ -141,6 +141,7 @@ class AniposelibOptimizerEx(BaseOptimizer):
                              mview_kps2d: np.ndarray,
                              mview_kps2d_mask: np.ndarray,
                              matched_list: list,
+                             optim_method='trf',
                              **kwargs: dict) -> Keypoints:
         """Forward function of keypoints3d optimizer.
 
@@ -202,6 +203,7 @@ class AniposelibOptimizerEx(BaseOptimizer):
                     scale_length=self.bone_length_weight,
                     constraints=connections,
                     verbose=self.verbose,
+                    optim_method=optim_method
                 )
             except:
                 kps3d_mask_dst[:, person_idx, :] = 0
