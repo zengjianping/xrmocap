@@ -15,8 +15,9 @@ kps2d_estimator = dict(
     mmpose_kwargs=dict(
         checkpoint='weight/hrnet_w48_coco_wholebody' +
         '_384x288_dark-f5726563_20200918.pth',
-        config='configs/modules/human_perception/mmpose_hrnet_w48_' +
-        'coco_wholebody_384x288_dark_plus.py',
+        #config='configs/modules/human_perception/mmpose_hrnet_w48_' +
+        #'coco_wholebody_384x288_dark_plus.py',
+        config='configs/modules/human_perception/td-hm_hrnet-w48_dark-8xb32-210e_coco-wholebody-384x288.py',
         device='cuda'),
     bbox_thr=0.95)
 triangulator = dict(type='AniposelibTriangulator', camera_parameters=[])
@@ -38,8 +39,11 @@ smplify = dict(
         model_path='xrmocap_data/body_models/smpl',
         batch_size=1,
         logger=logger),
-    optimizer=dict(
-        type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe'),
+    #optimizer=dict(
+    #    type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe'),
+    optimizer = dict(
+        type='OptimWrapper', # Specify the type of OptimWrapper
+        optimizer=dict(type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe')),
     ignore_keypoints=[
         'neck_openpose', 'right_hip_openpose', 'left_hip_openpose',
         'right_hip_extra', 'left_hip_extra'

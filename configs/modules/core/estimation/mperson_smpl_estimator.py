@@ -21,8 +21,11 @@ smplify = dict(
         model_path='xrmocap_data/body_models/smpl',
         batch_size=1,
         logger=logger),
-    optimizer=dict(
-        type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe'),
+    #optimizer=dict(
+    #    type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe'),
+    optimizer = dict(
+        type='OptimWrapper', # Specify the type of OptimWrapper
+        optimizer=dict(type='LBFGS', max_iter=20, lr=1.0, line_search_fn='strong_wolfe')),
     ignore_keypoints=[
         'neck_openpose', 'right_hip_openpose', 'left_hip_openpose',
         'right_hip_extra', 'left_hip_extra'

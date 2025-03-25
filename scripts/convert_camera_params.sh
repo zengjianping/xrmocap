@@ -7,8 +7,11 @@ height=1024
 #input="xrmocap_data/ezgolf/golf_20240418/camera_parameters/golf_swing"
 #output="xrmocap_data/ezgolf/golf_20240418/camera_parameters"
 
-input="xrmocap_data/ezgolf/golf_20240628/camera_parameters/golf_swing"
-output="xrmocap_data/ezgolf/golf_20240628/camera_parameters"
+#input="xrmocap_data/ezgolf/golf_20240628/camera_parameters/golf_swing"
+#output="xrmocap_data/ezgolf/golf_20240628/camera_parameters"
+
+input="xrmocap_data/ezgolf/golf_simulation/camera_parameters/golf_swing"
+output="xrmocap_data/ezgolf/golf_simulation/camera_parameters"
 
 #input="xrmocap_data/panoptic/camera_parameters/cameras"
 #output="xrmocap_data/panoptic/camera_parameters"

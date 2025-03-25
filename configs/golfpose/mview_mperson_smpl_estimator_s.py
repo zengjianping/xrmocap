@@ -8,7 +8,7 @@ optimize_kps3d = True
 output_smpl = False
 multi_person = False
 
-if False:
+if True:
     bbox_detector = dict(
         type='MMdetDetector', batch_size=10, bbox_thr=bbox_thr,
         mmdet_kwargs=dict(device='cuda',
